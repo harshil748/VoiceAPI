@@ -354,7 +354,7 @@ async def synthesize_get(
     return await synthesize_audio(request)
 
 
-@app.get("/Get_Inference")
+@app.api_route("/Get_Inference", methods=["GET", "POST"])
 async def get_inference(
     text: str = Query(
         ...,
@@ -364,9 +364,9 @@ async def get_inference(
         ...,
         description="Language of input text. Supported: bhojpuri, bengali, english, gujarati, hindi, chhattisgarhi, kannada, magahi, maithili, marathi, telugu",
     ),
-    speaker_wav: Optional[UploadFile] = File(
-        None,
-        description="A reference WAV file representing the speaker's voice (for voice cloning/reference). Optional.",
+    speaker_wav: UploadFile = File(
+        ...,
+        description="A reference WAV file representing the speaker's voice (mandatory per hackathon spec).",
     ),
 ):
     """
@@ -374,10 +374,12 @@ async def get_inference(
 
     This endpoint follows the Voice Tech for All hackathon specification.
 
+    Supports both GET and POST methods with multipart form data.
+
     Parameters:
-    - text: Input text to synthesize
-    - lang: Language (bhojpuri, bengali, english, gujarati, hindi, chhattisgarhi, kannada, magahi, maithili, marathi, telugu)
-    - speaker_wav: Reference WAV file for voice cloning
+    - text: Input text to synthesize (query param)
+    - lang: Language (query param) - bhojpuri, bengali, english, gujarati, hindi, chhattisgarhi, kannada, magahi, maithili, marathi, telugu
+    - speaker_wav: Reference WAV file (multipart file upload, mandatory)
 
     Returns:
     - 200 OK: WAV audio file as streaming response
@@ -386,6 +388,10 @@ async def get_inference(
 
     # Normalize language name
     lang_lower = lang.lower().strip()
+
+    # Enforce lowercase for English text (per spec)
+    if lang_lower == "english":
+        text = text.lower()
 
     # Map language to voice
     if lang_lower not in LANG_TO_VOICE:
@@ -397,18 +403,27 @@ async def get_inference(
 
     voice = LANG_TO_VOICE[lang_lower]
 
-    # Read speaker_wav (for future voice cloning - currently used as reference only)
+    # Read speaker_wav (mandatory per spec)
     # Note: Current VITS models don't support voice cloning, but we accept the file
-    # for API compatibility. In future, this could be used for voice adaptation.
-    if speaker_wav:
-        try:
-            speaker_audio_bytes = await speaker_wav.read()
-            # Log that we received the speaker reference
-            logger.info(
-                f"Received speaker reference WAV: {len(speaker_audio_bytes)} bytes"
+    # for API compatibility and validation. In future, this could be used for voice adaptation.
+    try:
+        speaker_audio_bytes = await speaker_wav.read()
+        logger.info(
+            f"Received speaker reference WAV: {len(speaker_audio_bytes)} bytes, filename: {speaker_wav.filename}"
+        )
+        # Validate it's a valid audio file (basic check)
+        if len(speaker_audio_bytes) < 44:  # Minimum WAV header size
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid speaker_wav: file too small to be a valid WAV",
             )
-        except Exception as e:
-            logger.warning(f"Could not read speaker_wav: {e}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Could not read speaker_wav: {e}")
+        raise HTTPException(
+            status_code=400, detail=f"Failed to read speaker_wav file: {str(e)}"
+        )
 
     try:
         # Synthesize audio
