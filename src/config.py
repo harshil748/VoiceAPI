@@ -154,10 +154,29 @@ LANGUAGE_CONFIGS: Dict[str, LanguageConfig] = {
         hf_model_id="SYSPIN/tts_vits_coquiai_EnglishFemale",
         model_filename="en_female_vits.pt",
     ),
+    # Gujarati - Using Facebook MMS model (1100+ languages)
+    "gu_mms": LanguageConfig(
+        name="Gujarati",
+        code="gu",
+        hf_model_id="facebook/mms-tts-guj",
+        model_filename="mms_guj.pt",
+        sample_rate=16000,  # MMS uses 16kHz
+    ),
 }
 
-# Note: Gujarati is not in SYSPIN models - we may need to fine-tune from scratch
-# or use a different source
+
+# Style presets for prosody control
+STYLE_PRESETS = {
+    "default": {"speed": 1.0, "pitch": 1.0, "energy": 1.0},
+    "slow": {"speed": 0.75, "pitch": 1.0, "energy": 1.0},
+    "fast": {"speed": 1.25, "pitch": 1.0, "energy": 1.0},
+    "soft": {"speed": 0.9, "pitch": 0.95, "energy": 0.7},
+    "loud": {"speed": 1.0, "pitch": 1.05, "energy": 1.3},
+    "happy": {"speed": 1.1, "pitch": 1.1, "energy": 1.2},
+    "sad": {"speed": 0.85, "pitch": 0.9, "energy": 0.8},
+    "calm": {"speed": 0.9, "pitch": 0.95, "energy": 0.85},
+    "excited": {"speed": 1.2, "pitch": 1.15, "energy": 1.3},
+}
 
 
 def get_available_languages() -> Dict[str, str]:
@@ -175,7 +194,16 @@ def get_available_voices() -> Dict[str, Dict]:
         key: {
             "name": config.name,
             "code": config.code,
-            "gender": "male" if "male" in key else "female",
+            "gender": (
+                "male"
+                if "male" in key
+                else ("female" if "female" in key else "neutral")
+            ),
         }
         for key, config in LANGUAGE_CONFIGS.items()
     }
+
+
+def get_style_presets() -> Dict[str, Dict]:
+    """Returns available style presets"""
+    return STYLE_PRESETS

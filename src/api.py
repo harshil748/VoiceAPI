@@ -19,7 +19,12 @@ from pydantic import BaseModel, Field
 import soundfile as sf
 
 from .engine import TTSEngine, TTSOutput
-from .config import LANGUAGE_CONFIGS, get_available_languages, get_available_voices
+from .config import (
+    LANGUAGE_CONFIGS,
+    get_available_languages,
+    get_available_voices,
+    STYLE_PRESETS,
+)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -85,16 +90,26 @@ class SynthesizeRequest(BaseModel):
     text: str = Field(
         ..., description="Text to synthesize", min_length=1, max_length=5000
     )
-    voice: str = Field("hi_male", description="Voice key (e.g., hi_male, bn_female)")
+    voice: str = Field(
+        "hi_male", description="Voice key (e.g., hi_male, bn_female, gu_mms)"
+    )
     speed: float = Field(1.0, description="Speech speed (0.5-2.0)", ge=0.5, le=2.0)
+    pitch: float = Field(1.0, description="Pitch multiplier (0.5-2.0)", ge=0.5, le=2.0)
+    energy: float = Field(1.0, description="Energy/volume (0.5-2.0)", ge=0.5, le=2.0)
+    style: Optional[str] = Field(
+        None, description="Style preset (happy, sad, calm, excited, etc.)"
+    )
     normalize: bool = Field(True, description="Apply text normalization")
 
     class Config:
         schema_extra = {
             "example": {
-                "text": "नमस्ते, मैं आपकी कैसे मदद कर सकता हूं?",
-                "voice": "hi_female",
+                "text": "નમસ્તે, હું તમારી કેવી રીતે મદદ કરી શકું?",
+                "voice": "gu_mms",
                 "speed": 1.0,
+                "pitch": 1.0,
+                "energy": 1.0,
+                "style": "calm",
                 "normalize": True,
             }
         }
@@ -120,6 +135,7 @@ class VoiceInfo(BaseModel):
     gender: str
     loaded: bool
     downloaded: bool
+    model_type: str = "vits"
 
 
 class HealthResponse(BaseModel):
@@ -129,6 +145,7 @@ class HealthResponse(BaseModel):
     device: str
     loaded_voices: List[str]
     available_voices: int
+    style_presets: List[str]
 
 
 # API Endpoints
@@ -152,6 +169,7 @@ async def health_check():
         device=str(engine.device),
         loaded_voices=engine.get_loaded_voices(),
         available_voices=len(LANGUAGE_CONFIGS),
+        style_presets=list(STYLE_PRESETS.keys()),
     )
 
 
@@ -169,9 +187,23 @@ async def list_voices():
             gender=info["gender"],
             loaded=info["loaded"],
             downloaded=info["downloaded"],
+            model_type=info.get("type", "vits"),
         )
         for key, info in voices.items()
     ]
+
+
+@app.get("/styles")
+async def list_styles():
+    """List available style presets for prosody control"""
+    return {
+        "presets": STYLE_PRESETS,
+        "description": {
+            "speed": "Speech rate multiplier (0.5-2.0)",
+            "pitch": "Pitch multiplier (0.5-2.0), >1 = higher",
+            "energy": "Volume/energy multiplier (0.5-2.0)",
+        },
+    }
 
 
 @app.get("/languages")
@@ -204,6 +236,9 @@ async def synthesize_audio(request: SynthesizeRequest):
             text=request.text,
             voice=request.voice,
             speed=request.speed,
+            pitch=request.pitch,
+            energy=request.energy,
+            style=request.style,
             normalize_text=request.normalize,
         )
 
@@ -222,6 +257,7 @@ async def synthesize_audio(request: SynthesizeRequest):
                 "X-Duration": str(output.duration),
                 "X-Sample-Rate": str(output.sample_rate),
                 "X-Voice": output.voice,
+                "X-Style": output.style or "default",
                 "X-Inference-Time": str(inference_time),
             },
         )
@@ -248,6 +284,9 @@ async def synthesize_stream(request: SynthesizeRequest):
             text=request.text,
             voice=request.voice,
             speed=request.speed,
+            pitch=request.pitch,
+            energy=request.energy,
+            style=request.style,
             normalize_text=request.normalize,
         )
 
@@ -274,13 +313,18 @@ async def synthesize_get(
     ),
     voice: str = Query("hi_male", description="Voice key"),
     speed: float = Query(1.0, description="Speech speed", ge=0.5, le=2.0),
+    pitch: float = Query(1.0, description="Pitch", ge=0.5, le=2.0),
+    energy: float = Query(1.0, description="Energy", ge=0.5, le=2.0),
+    style: Optional[str] = Query(None, description="Style preset"),
 ):
     """
     GET endpoint for simple synthesis
 
     Useful for testing and simple integrations
     """
-    request = SynthesizeRequest(text=text, voice=voice, speed=speed)
+    request = SynthesizeRequest(
+        text=text, voice=voice, speed=speed, pitch=pitch, energy=energy, style=style
+    )
     return await synthesize_audio(request)
 
 
