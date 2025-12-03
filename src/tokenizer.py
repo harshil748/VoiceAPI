@@ -28,8 +28,8 @@ class TTSTokenizer:
     IMPORTANT: For SYSPIN models, the vocabulary is defined by chars.txt file.
     The vocab structure is: [<PAD>] + list(chars.txt) + [<BLNK>]
 
-    chars.txt contains ALL characters (including punctuation) in the exact
-    order they were used during model training.
+    chars.txt contains ALL characters (including punctuation) in the EXACT
+    order they were used during model training. DO NOT sort or reorder!
     """
 
     def __init__(self, config: CharactersConfig, use_chars_file_vocab: bool = False):
@@ -39,8 +39,7 @@ class TTSTokenizer:
         self.bos = config.bos
         self.blank = config.blank
         self.characters = config.characters
-        # Use standard VITS punctuations if not specified
-        self.punctuations = config.punctuations if config.punctuations else "!'(),-.:;? "
+        self.punctuations = config.punctuations
         self.use_chars_file_vocab = use_chars_file_vocab
 
         # Build character to ID mapping
@@ -48,17 +47,19 @@ class TTSTokenizer:
 
     def _build_vocab(self):
         """
-        Build vocabulary from characters
-        
-        For SYSPIN models, we need to reconstruct the vocabulary to match 
-        VitsCharacters implementation (used during training):
-        Vocab = [PAD] + punctuations + sorted(unique_chars) + [BLANK]
-        
-        chars.txt usually contains a raw dump of characters, so we need to:
-        1. Extract unique characters
-        2. Remove punctuations from them (to avoid duplicates)
-        3. Sort them
-        4. Construct the vocab
+        Build vocabulary from characters.
+
+        For SYSPIN models (use_chars_file_vocab=True):
+        - chars.txt contains ALL characters in EXACT order used during training
+        - Vocab is simply: [<PAD>] + list(chars.txt) + [<BLNK>]
+        - NO sorting, NO punctuation separation, NO reordering!
+
+        The SYSPIN VitsCharacters._create_vocab() uses:
+        self._vocab = [self._pad] + list(self._punctuations) + list(self._characters) + [self._blank]
+
+        But when trained with graphemes=chars_txt and punctuations="", it becomes:
+        self._vocab = [<PAD>] + [] + list(chars_txt) + [<BLNK>]
+        = [<PAD>] + list(chars_txt) + [<BLNK>]
         """
         self.char_to_id: Dict[str, int] = {}
         self.id_to_char: Dict[int, str] = {}
@@ -71,38 +72,29 @@ class TTSTokenizer:
             self.id_to_char[idx] = self.pad
             idx += 1
 
-        # 2. Punctuations
-        # We always add punctuations first, as per VitsCharacters
-        for char in self.punctuations:
-            if char not in self.char_to_id:
-                self.char_to_id[char] = idx
-                self.id_to_char[idx] = char
-                idx += 1
-
-        # 3. Characters
-        # If using chars file, we treat it as the source of characters
         if self.use_chars_file_vocab:
-            # Filter out punctuations and sort
-            unique_chars = set(self.characters)
-            # Remove chars that are already in punctuations
-            cleaned_chars = [c for c in unique_chars if c not in self.char_to_id]
-            # Sort to match VitsCharacters default behavior
-            sorted_chars = sorted(cleaned_chars)
-            
-            for char in sorted_chars:
+            # SYSPIN model: chars.txt contains ALL chars in EXACT order
+            # Add each character from chars.txt in order (no sorting!)
+            for char in self.characters:
                 if char not in self.char_to_id:
                     self.char_to_id[char] = idx
                     self.id_to_char[idx] = char
                     idx += 1
         else:
-            # Legacy/Standard behavior
+            # Legacy mode: punctuations first, then characters
+            for char in self.punctuations:
+                if char not in self.char_to_id:
+                    self.char_to_id[char] = idx
+                    self.id_to_char[idx] = char
+                    idx += 1
+
             for char in self.characters:
                 if char not in self.char_to_id:
                     self.char_to_id[char] = idx
                     self.id_to_char[idx] = char
                     idx += 1
 
-        # 4. BLANK token last
+        # BLANK token last
         if self.blank:
             self.char_to_id[self.blank] = idx
             self.id_to_char[idx] = self.blank
