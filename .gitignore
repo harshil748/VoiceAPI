@@ -25,3 +25,5 @@
 *.amr
 .amr
 *.mid
+*.pt
+.pt
