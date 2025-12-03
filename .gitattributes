@@ -1,2 +1,4 @@
 *.pt filter=lfs diff=lfs merge=lfs -text
 *.pth filter=lfs diff=lfs merge=lfs -text
+models/bho_female/checkpoint_340000.pth filter=lfs diff=lfs merge=lfs -text
+models/bho_male/checkpoint_200000.pth filter=lfs diff=lfs merge=lfs -text
