@@ -61,7 +61,7 @@ class ModelDownloader:
                 repo_id=config.hf_model_id,
                 local_dir=str(model_dir),
                 local_dir_use_symlinks=False,
-                allow_patterns=["*.pt", "*.txt", "*.py"],
+                allow_patterns=["*.pt", "*.pth", "*.txt", "*.py", "*.json"],
             )
             logger.info(f"Successfully downloaded {voice_key} to {model_dir}")
 
