@@ -1,6 +1,9 @@
 """
 REST API Server for Multi-lingual TTS
 FastAPI-based server with OpenAPI documentation
+
+Hackathon API Specification:
+- GET /Get_Inference with text, lang, speaker_wav parameters
 """
 
 import os
@@ -12,7 +15,15 @@ from typing import Optional, List
 from pathlib import Path
 import numpy as np
 
-from fastapi import FastAPI, HTTPException, Query, Response, BackgroundTasks
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Query,
+    Response,
+    BackgroundTasks,
+    UploadFile,
+    File,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from pydantic import BaseModel, Field
@@ -25,6 +36,21 @@ from .config import (
     get_available_voices,
     STYLE_PRESETS,
 )
+
+# Language name to voice key mapping (for hackathon API)
+LANG_TO_VOICE = {
+    "hindi": "hi_female",
+    "bengali": "bn_female",
+    "marathi": "mr_female",
+    "telugu": "te_female",
+    "kannada": "kn_female",
+    "bhojpuri": "bho_female",
+    "chhattisgarhi": "hne_female",
+    "maithili": "mai_female",
+    "magahi": "mag_female",
+    "english": "en_female",
+    "gujarati": "gu_mms",
+}
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -326,6 +352,91 @@ async def synthesize_get(
         text=text, voice=voice, speed=speed, pitch=pitch, energy=energy, style=style
     )
     return await synthesize_audio(request)
+
+
+@app.get("/Get_Inference")
+async def get_inference(
+    text: str = Query(
+        ...,
+        description="The input text to be converted into speech. For English, text must be lowercase.",
+    ),
+    lang: str = Query(
+        ...,
+        description="Language of input text. Supported: bhojpuri, bengali, english, gujarati, hindi, chhattisgarhi, kannada, magahi, maithili, marathi, telugu",
+    ),
+    speaker_wav: UploadFile = File(
+        ...,
+        description="A reference WAV file representing the speaker's voice (for voice cloning/reference)",
+    ),
+):
+    """
+    Hackathon API - Generate speech audio from text
+
+    This endpoint follows the Voice Tech for All hackathon specification.
+
+    Parameters:
+    - text: Input text to synthesize
+    - lang: Language (bhojpuri, bengali, english, gujarati, hindi, chhattisgarhi, kannada, magahi, maithili, marathi, telugu)
+    - speaker_wav: Reference WAV file for voice cloning
+
+    Returns:
+    - 200 OK: WAV audio file as streaming response
+    """
+    engine = get_engine()
+
+    # Normalize language name
+    lang_lower = lang.lower().strip()
+
+    # Map language to voice
+    if lang_lower not in LANG_TO_VOICE:
+        supported = list(LANG_TO_VOICE.keys())
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported language: {lang}. Supported languages: {', '.join(supported)}",
+        )
+
+    voice = LANG_TO_VOICE[lang_lower]
+
+    # Read speaker_wav (for future voice cloning - currently used as reference only)
+    # Note: Current VITS models don't support voice cloning, but we accept the file
+    # for API compatibility. In future, this could be used for voice adaptation.
+    try:
+        speaker_audio_bytes = await speaker_wav.read()
+        # Log that we received the speaker reference
+        logger.info(f"Received speaker reference WAV: {len(speaker_audio_bytes)} bytes")
+    except Exception as e:
+        logger.warning(f"Could not read speaker_wav: {e}")
+
+    try:
+        # Synthesize audio
+        output = engine.synthesize(
+            text=text,
+            voice=voice,
+            speed=1.0,
+            normalize_text=True,
+        )
+
+        # Convert to WAV bytes
+        buffer = io.BytesIO()
+        sf.write(buffer, output.audio, output.sample_rate, format="WAV")
+        buffer.seek(0)
+
+        # Return as streaming response (per spec)
+        return StreamingResponse(
+            buffer,
+            media_type="audio/wav",
+            headers={
+                "Content-Disposition": "attachment; filename=output.wav",
+                "X-Duration": str(output.duration),
+                "X-Sample-Rate": str(output.sample_rate),
+                "X-Language": lang,
+                "X-Voice": voice,
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Synthesis error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/preload")

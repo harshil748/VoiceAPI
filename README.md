@@ -79,6 +79,42 @@ Visit `http://localhost:8000/docs` for interactive API documentation.
 
 ## 📡 API Usage
 
+### 🏆 Hackathon API - GET /Get_Inference
+
+**This is the official hackathon endpoint** that follows the Voice Tech for All specification:
+
+```python
+import requests
+
+base_url = 'http://localhost:8000/Get_Inference'
+WavPath = 'path/to/reference.wav'
+
+params = {
+    'text': 'ಮಾದರಿಯು ಸರಿಯಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿದೆಯೇ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಲು ಬಳಸಲಾಗುವ ಪರೀಕ್ಷಾ ವಾಕ್ಯ ಇದು.',
+    'lang': 'kannada',
+}
+
+with open(WavPath, "rb") as AudioFile:
+    response = requests.get(base_url, params=params, files={'speaker_wav': AudioFile})
+
+if response.status_code == 200:
+    with open('output.wav', 'wb') as f:
+        f.write(response.content)
+    print("Audio saved as 'output.wav'")
+```
+
+**Query Parameters:**
+
+| Parameter     | Type   | Required  | Description                                                                                                      |
+| ------------- | ------ | --------- | ---------------------------------------------------------------------------------------------------------------- |
+| `text`        | string | Mandatory | Input text to convert to speech. For English, text must be lowercase.                                            |
+| `lang`        | string | Mandatory | Language: bhojpuri, bengali, english, gujarati, hindi, chhattisgarhi, kannada, magahi, maithili, marathi, telugu |
+| `speaker_wav` | file   | Mandatory | Reference WAV file for speaker voice                                                                             |
+
+**Response:** `200 OK` with `Content-Type: audio/wav`
+
+---
+
 ### Synthesize with Style (POST)
 
 ```bash
