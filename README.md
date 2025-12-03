@@ -1,6 +1,6 @@
 # Voice Tech for All - Multi-lingual TTS System
 
-A lightweight, multi-lingual Text-to-Speech system supporting 10+ Indian languages with REST API.
+A lightweight, multi-lingual Text-to-Speech system supporting **11 Indian languages** with **style/prosody control** and REST API.
 
 ## 🎯 Hackathon: Voice Tech for All
 
@@ -8,12 +8,13 @@ Built for the healthcare assistant use case - helping pregnant mothers in low-in
 
 ## ✨ Features
 
-- **10+ Indian Languages**: Hindi, Bengali, Marathi, Telugu, Kannada, Bhojpuri, Chhattisgarhi, Maithili, Magahi, English
-- **Male & Female Voices**: 20 voice options
+- **11 Indian Languages**: Hindi, Bengali, Marathi, Telugu, Kannada, Bhojpuri, Chhattisgarhi, Maithili, Magahi, English, **Gujarati**
+- **21 Voice Options**: Male & Female voices for each language
+- **Style/Prosody Control**: 9 presets (happy, sad, calm, excited, etc.)
+- **Pitch & Speed Control**: Fine-tune voice characteristics
 - **Lightweight**: VITS-based models optimized for fast inference
 - **REST API**: FastAPI-powered server with OpenAPI docs
 - **Text Normalization**: Handles numbers, punctuation for Indian scripts
-- **Apple Silicon Support**: Runs on M1/M2/M3 Macs with MPS acceleration
 
 ## 🚀 Quick Start
 
@@ -21,9 +22,10 @@ Built for the healthcare assistant use case - helping pregnant mothers in low-in
 
 ```bash
 # Clone and navigate
-cd /path/to/TTS
+git clone https://github.com/harshil748/VoiceAPI
+cd VoiceAPI
 
-# Create virtual environment (if not exists)
+# Create virtual environment
 python3 -m venv tts
 source tts/bin/activate
 
@@ -40,15 +42,14 @@ python -m src.cli download --lang hi
 # Or download a specific voice
 python -m src.cli download --voice hi_male
 
-# Or download ALL models (~6GB)
-python -m src.cli download --all
+# Gujarati uses Facebook MMS (auto-downloads on first use)
 ```
 
 ### 3. Synthesize Speech
 
 ```bash
-# Command line
-python -m src.cli synthesize --text "नमस्ते, मैं आपकी मदद कर सकता हूं" --voice hi_male --output hello.wav
+# Basic synthesis
+python -m src.cli synthesize --text "नमस्ते दोस्तों" --voice hi_male --output hello.wav
 
 # Play the audio (macOS)
 afplay hello.wav
@@ -62,43 +63,67 @@ python -m src.cli serve --port 8000
 
 Visit `http://localhost:8000/docs` for interactive API documentation.
 
+## 🎨 Style Presets
+
+| Preset    | Speed | Pitch | Energy | Best For                |
+| --------- | ----- | ----- | ------ | ----------------------- |
+| `default` | 1.0   | 1.0   | 1.0    | Normal speech           |
+| `slow`    | 0.75  | 1.0   | 1.0    | Elderly users, clarity  |
+| `fast`    | 1.25  | 1.0   | 1.0    | Quick information       |
+| `soft`    | 0.9   | 0.95  | 0.7    | Calming content         |
+| `loud`    | 1.0   | 1.05  | 1.3    | Alerts, emphasis        |
+| `happy`   | 1.1   | 1.1   | 1.2    | Positive messages       |
+| `sad`     | 0.85  | 0.9   | 0.8    | Empathetic responses    |
+| `calm`    | 0.9   | 0.95  | 0.85   | **Healthcare guidance** |
+| `excited` | 1.2   | 1.15  | 1.3    | Celebrations            |
+
 ## 📡 API Usage
 
-### Synthesize Speech (POST)
+### Synthesize with Style (POST)
 
 ```bash
 curl -X POST "http://localhost:8000/synthesize" \
   -H "Content-Type: application/json" \
-  -d '{"text": "नमस्ते", "voice": "hi_female", "speed": 1.0}' \
+  -d '{
+    "text": "आपका दिन शुभ हो",
+    "voice": "hi_female",
+    "style": "happy",
+    "speed": 1.0,
+    "pitch": 1.0
+  }' \
   --output speech.wav
 ```
 
-### Synthesize Speech (GET - for testing)
+### Gujarati Synthesis
 
 ```bash
-curl "http://localhost:8000/synthesize/get?text=नमस्ते&voice=hi_male" --output speech.wav
+curl -X POST "http://localhost:8000/synthesize" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "નમસ્તે, કેમ છો?", "voice": "gu_mms", "style": "calm"}' \
+  --output gujarati.wav
 ```
 
-### List Available Voices
+### List Style Presets
 
 ```bash
-curl http://localhost:8000/voices
+curl http://localhost:8000/styles
 ```
 
 ## 🎤 Available Voices
 
-| Language      | Code | Male        | Female        |
-| ------------- | ---- | ----------- | ------------- |
-| Hindi         | hi   | ✅ hi_male  | ✅ hi_female  |
-| Bengali       | bn   | ✅ bn_male  | ✅ bn_female  |
-| Marathi       | mr   | ✅ mr_male  | ✅ mr_female  |
-| Telugu        | te   | ✅ te_male  | ✅ te_female  |
-| Kannada       | kn   | ✅ kn_male  | ✅ kn_female  |
-| Bhojpuri      | bho  | ✅ bho_male | ✅ bho_female |
-| Chhattisgarhi | hne  | ✅ hne_male | ✅ hne_female |
-| Maithili      | mai  | ✅ mai_male | ✅ mai_female |
-| Magahi        | mag  | ✅ mag_male | ✅ mag_female |
-| English       | en   | ✅ en_male  | ✅ en_female  |
+| Language      | Code | Male        | Female        | Notes        |
+| ------------- | ---- | ----------- | ------------- | ------------ |
+| Hindi         | hi   | ✅ hi_male  | ✅ hi_female  | SYSPIN       |
+| Bengali       | bn   | ✅ bn_male  | ✅ bn_female  | SYSPIN       |
+| Marathi       | mr   | ✅ mr_male  | ✅ mr_female  | SYSPIN       |
+| Telugu        | te   | ✅ te_male  | ✅ te_female  | SYSPIN       |
+| Kannada       | kn   | ✅ kn_male  | ✅ kn_female  | SYSPIN       |
+| Bhojpuri      | bho  | ✅ bho_male | ✅ bho_female | SYSPIN       |
+| Chhattisgarhi | hne  | ✅ hne_male | ✅ hne_female | SYSPIN       |
+| Maithili      | mai  | ✅ mai_male | ✅ mai_female | SYSPIN       |
+| Magahi        | mag  | ✅ mag_male | ✅ mag_female | SYSPIN       |
+| English       | en   | ✅ en_male  | ✅ en_female  | SYSPIN       |
+| **Gujarati**  | gu   | ✅ gu_mms   | -             | Facebook MMS |
 
 ## 🐍 Python API
 
@@ -106,75 +131,80 @@ curl http://localhost:8000/voices
 from src.engine import TTSEngine
 
 # Initialize engine
-engine = TTSEngine(device="auto")  # auto-detects CPU/GPU/MPS
+engine = TTSEngine(device="auto")
 
-# Synthesize
+# Basic synthesis
 output = engine.synthesize(
-    text="गर्भावस्था में स्वस्थ आहार बहुत महत्वपूर्ण है",
-    voice="hi_female",
-    speed=1.0
+    text="गर्भावस्था में स्वस्थ आहार महत्वपूर्ण है",
+    voice="hi_female"
+)
+
+# With style control
+output = engine.synthesize(
+    text="आपका दिन शुभ हो",
+    voice="hi_male",
+    style="happy",      # Use preset
+    pitch=1.1,          # Or manual control
+    speed=1.0,
+    energy=1.2
+)
+
+# Gujarati
+output = engine.synthesize(
+    text="સ્વસ્થ રહો, ખુશ રહો",
+    voice="gu_mms",
+    style="calm"
 )
 
 # Save to file
 engine.synthesize_to_file(
-    text="नमस्ते",
+    text="નમસ્તે",
     output_path="hello.wav",
-    voice="hi_male"
+    voice="gu_mms",
+    style="calm"
 )
-
-# Get available voices
-voices = engine.get_available_voices()
 ```
 
 ## 📁 Project Structure
 
-```
-TTS/
+```text
+VoiceAPI/
 ├── src/
-│   ├── __init__.py
-│   ├── config.py      # Language/voice configurations
+│   ├── config.py      # Language/voice/style configurations
 │   ├── tokenizer.py   # Text tokenization & normalization
-│   ├── engine.py      # Main TTS engine
+│   ├── engine.py      # Main TTS engine with style processor
 │   ├── downloader.py  # HuggingFace model downloader
 │   ├── api.py         # FastAPI REST server
 │   └── cli.py         # Command-line interface
-├── models/            # Downloaded models (created automatically)
+├── models/            # Downloaded models
 ├── dataset/           # SPICOR dataset (for fine-tuning)
+├── technical_report.md
 ├── requirements.txt
 └── README.md
 ```
 
-## 🔧 Configuration
-
-Environment variables:
-
-- `MODELS_DIR`: Custom path for downloaded models
-- `TTS_DEVICE`: Force device (cpu/cuda/mps)
-
 ## 📊 Performance
 
-| Metric         | Value                              |
-| -------------- | ---------------------------------- |
-| Model Size     | ~300MB per voice                   |
-| Inference Time | ~0.3s for short sentences (M2 Mac) |
-| Sample Rate    | 22050 Hz                           |
-| Audio Format   | 16-bit PCM WAV                     |
+| Metric         | Value                           |
+| -------------- | ------------------------------- |
+| Languages      | 11                              |
+| Voice Variants | 21                              |
+| Style Presets  | 9                               |
+| Model Size     | ~300MB (VITS), ~145MB (MMS)     |
+| Inference Time | ~0.3s (M2 Mac, CPU)             |
+| Sample Rate    | 22050 Hz (VITS), 16000 Hz (MMS) |
 
 ## 🙏 Credits
 
-- **Models**: [SYSPIN](https://huggingface.co/SYSPIN) - IISc Bangalore
-- **Architecture**: VITS (Conditional Variational Autoencoder with Adversarial Learning)
-- **Framework**: [Coqui TTS](https://github.com/coqui-ai/TTS)
+- **SYSPIN Models**: [IISc Bangalore](https://huggingface.co/SYSPIN)
+- **MMS Models**: [Facebook Research](https://huggingface.co/facebook/mms-tts-guj)
+- **Architecture**: VITS (Coqui AI)
 - **Dataset**: SPICOR TTS Project, IISc SPIRE Lab
 
 ## 📜 License
 
-CC BY 4.0 - Same as the SYSPIN models
-
-## 🤝 Contributing
-
-This is a hackathon project. Feel free to fork and extend!
+CC BY 4.0 (SYSPIN), CC BY-NC 4.0 (MMS)
 
 ---
 
-Built with ❤️ for Voice Tech for All Hackathon
+Built with ❤️ for **Voice Tech for All Hackathon**
