@@ -14,12 +14,11 @@
 *.amr
 *.mid
 
-# Model files (downloaded at runtime)
-*.pt
-*.pth
+# Model files - tracked with Git LFS
+# *.pt  # Now tracked by LFS
+# *.pth # Now tracked by LFS
 *.bin
 *.safetensors
-models/
 
 # Python
 __pycache__/
@@ -54,3 +53,7 @@ dataset/
 # Docs
 *.pdf
 *.docx
+
+# Cache
+.cache/
+models/*/.cache/
