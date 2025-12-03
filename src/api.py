@@ -364,9 +364,9 @@ async def get_inference(
         ...,
         description="Language of input text. Supported: bhojpuri, bengali, english, gujarati, hindi, chhattisgarhi, kannada, magahi, maithili, marathi, telugu",
     ),
-    speaker_wav: UploadFile = File(
-        ...,
-        description="A reference WAV file representing the speaker's voice (for voice cloning/reference)",
+    speaker_wav: Optional[UploadFile] = File(
+        None,
+        description="A reference WAV file representing the speaker's voice (for voice cloning/reference). Optional.",
     ),
 ):
     """
@@ -400,12 +400,15 @@ async def get_inference(
     # Read speaker_wav (for future voice cloning - currently used as reference only)
     # Note: Current VITS models don't support voice cloning, but we accept the file
     # for API compatibility. In future, this could be used for voice adaptation.
-    try:
-        speaker_audio_bytes = await speaker_wav.read()
-        # Log that we received the speaker reference
-        logger.info(f"Received speaker reference WAV: {len(speaker_audio_bytes)} bytes")
-    except Exception as e:
-        logger.warning(f"Could not read speaker_wav: {e}")
+    if speaker_wav:
+        try:
+            speaker_audio_bytes = await speaker_wav.read()
+            # Log that we received the speaker reference
+            logger.info(
+                f"Received speaker reference WAV: {len(speaker_audio_bytes)} bytes"
+            )
+        except Exception as e:
+            logger.warning(f"Could not read speaker_wav: {e}")
 
     try:
         # Synthesize audio

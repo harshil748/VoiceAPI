@@ -22,9 +22,17 @@ class CharactersConfig:
 
 
 class TTSTokenizer:
-    """Tokenizer for TTS models"""
+    """
+    Tokenizer for TTS models - Compatible with SYSPIN VITS models
 
-    def __init__(self, config: CharactersConfig):
+    IMPORTANT: For SYSPIN models, the vocabulary is defined by chars.txt file.
+    The vocab structure is: [<PAD>] + list(chars.txt) + [<BLNK>]
+
+    chars.txt contains ALL characters (including punctuation) in the exact
+    order they were used during model training.
+    """
+
+    def __init__(self, config: CharactersConfig, use_chars_file_vocab: bool = False):
         self.config = config
         self.pad = config.pad
         self.eos = config.eos
@@ -32,55 +40,83 @@ class TTSTokenizer:
         self.blank = config.blank
         self.characters = config.characters
         self.punctuations = config.punctuations
+        self.use_chars_file_vocab = use_chars_file_vocab
 
         # Build character to ID mapping
         self._build_vocab()
 
     def _build_vocab(self):
-        """Build vocabulary from characters"""
+        """
+        Build vocabulary from characters
+
+        For SYSPIN models (use_chars_file_vocab=True):
+        - chars.txt contains ALL characters in EXACT order
+        - Vocab is: [<PAD>] + list(chars.txt) + [<BLNK>]
+        - No sorting, no separation of punctuation
+
+        For legacy/other models:
+        - Original order: [PAD] + punctuations + characters + [BLANK]
+        """
         self.char_to_id: Dict[str, int] = {}
         self.id_to_char: Dict[int, str] = {}
 
-        # Special tokens
         idx = 0
-        for special in [self.pad, self.eos, self.bos, self.blank]:
-            if special:
-                self.char_to_id[special] = idx
-                self.id_to_char[idx] = special
-                idx += 1
 
-        # Characters
-        for char in self.characters:
-            if char not in self.char_to_id:
-                self.char_to_id[char] = idx
-                self.id_to_char[idx] = char
-                idx += 1
+        # 1. PAD token first
+        if self.pad:
+            self.char_to_id[self.pad] = idx
+            self.id_to_char[idx] = self.pad
+            idx += 1
 
-        # Punctuations
-        for char in self.punctuations:
-            if char not in self.char_to_id:
-                self.char_to_id[char] = idx
-                self.id_to_char[idx] = char
-                idx += 1
+        if self.use_chars_file_vocab:
+            # SYSPIN model: chars.txt contains ALL chars in exact order
+            # No punctuation prefix - chars.txt already has everything
+            for char in self.characters:
+                if char not in self.char_to_id:
+                    self.char_to_id[char] = idx
+                    self.id_to_char[idx] = char
+                    idx += 1
+        else:
+            # Legacy: punctuations first, then characters
+            for char in self.punctuations:
+                if char not in self.char_to_id:
+                    self.char_to_id[char] = idx
+                    self.id_to_char[idx] = char
+                    idx += 1
+
+            for char in self.characters:
+                if char not in self.char_to_id:
+                    self.char_to_id[char] = idx
+                    self.id_to_char[idx] = char
+                    idx += 1
+
+        # BLANK token last
+        if self.blank:
+            self.char_to_id[self.blank] = idx
+            self.id_to_char[idx] = self.blank
+            idx += 1
 
         self.vocab_size = len(self.char_to_id)
+        self.blank_id = self.char_to_id.get(self.blank)
+        self.pad_id = self.char_to_id.get(self.pad)
 
     def text_to_ids(self, text: str, add_blank: bool = True) -> List[int]:
-        """Convert text to token IDs"""
+        """Convert text to token IDs with interspersed blanks"""
         text = self._clean_text(text)
-        ids = []
 
+        # First encode characters
+        char_ids = []
         for char in text:
             if char in self.char_to_id:
-                if add_blank and self.blank and self.blank in self.char_to_id:
-                    ids.append(self.char_to_id[self.blank])
-                ids.append(self.char_to_id[char])
+                char_ids.append(self.char_to_id[char])
 
-        # Add final blank
-        if add_blank and self.blank and self.blank in self.char_to_id:
-            ids.append(self.char_to_id[self.blank])
+        # Intersperse blank tokens (matching VitsCharacters behavior)
+        if add_blank and self.blank_id is not None:
+            result = [self.blank_id] * (len(char_ids) * 2 + 1)
+            result[1::2] = char_ids
+            return result
 
-        return ids
+        return char_ids
 
     def ids_to_text(self, ids: List[int]) -> str:
         """Convert token IDs back to text"""
@@ -93,31 +129,47 @@ class TTSTokenizer:
         return "".join(chars)
 
     def _clean_text(self, text: str) -> str:
-        """Basic text cleaning"""
-        # Convert to lowercase for some languages
-        # text = text.lower()  # Keep original case for Indic scripts
+        """Text cleaning matching multilingual_cleaners"""
+        # Apply multilingual cleaners pipeline
+        text = text.lower()  # lowercase
+        text = self._replace_symbols(text)
+        text = self._remove_aux_symbols(text)
+        text = re.sub(r"\s+", " ", text).strip()  # collapse_whitespace
+        return text
 
-        # Normalize whitespace
-        text = re.sub(r"\s+", " ", text).strip()
+    def _replace_symbols(self, text: str) -> str:
+        """Replace symbols"""
+        text = text.replace(";", ",")
+        text = text.replace("-", " ")
+        text = text.replace(":", ",")
+        return text
 
+    def _remove_aux_symbols(self, text: str) -> str:
+        """Remove auxiliary symbols"""
+        text = re.sub(r"[\<\>\(\)\[\]\"]+", "", text)
         return text
 
     @classmethod
     def from_chars_file(cls, chars_file: str) -> "TTSTokenizer":
-        """Create tokenizer from chars.txt file"""
+        """
+        Create tokenizer from chars.txt file (for SYSPIN models)
+
+        chars.txt contains ALL characters in the EXACT order used during training.
+        The vocab will be: [<PAD>] + list(chars.txt) + [<BLNK>]
+        """
         with open(chars_file, "r", encoding="utf-8") as f:
             chars = f.read().strip("\n")
 
         config = CharactersConfig(
             characters=chars,
-            punctuations="!¡'(),-.:;¿? ",
+            punctuations="",  # Empty - chars.txt already has everything
             pad="<PAD>",
-            eos="<EOS>",
-            bos="<BOS>",
+            eos=None,  # VitsCharacters doesn't use EOS
+            bos=None,  # VitsCharacters doesn't use BOS
             blank="<BLNK>",
         )
 
-        return cls(config)
+        return cls(config, use_chars_file_vocab=True)
 
 
 # Text normalization for Indian languages
