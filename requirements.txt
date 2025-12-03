@@ -2,26 +2,26 @@
 # Requirements for the TTS system
 
 # Core ML/Audio
-torch>=2.0.0
-numpy>=1.24.0
-scipy>=1.10.0
-soundfile>=0.12.0
-librosa>=0.10.0  # For pitch shifting and time stretching
+torch
+numpy
+scipy
+soundfile
+librosa  # For pitch shifting and time stretching
 
 # TTS Models
-TTS>=0.22.0  # Coqui TTS - required for Bhojpuri .pth models
-huggingface-hub>=0.16.0
-transformers>=4.30.0  # Required for MMS models (Gujarati)
+TTS  # Coqui TTS - required for Bhojpuri .pth models
+huggingface-hub
+transformers  # Required for MMS models (Gujarati)
 
 # API Server
-fastapi>=0.100.0
-uvicorn[standard]>=0.22.0
-python-multipart>=0.0.6  # Required for file uploads
-pydantic>=2.0.0
+fastapi
+uvicorn[standard]
+python-multipart  # Required for file uploads
+pydantic
 
 # Utilities
-tqdm>=4.65.0
-requests>=2.31.0
+tqdm
+requests
 
 # Development (optional)
-pytest>=7.0.0
+pytest

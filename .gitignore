@@ -1,36 +1,56 @@
+# Audio files
 *.wav
-.wav
 *.mp3
-.mp3
 *.flac
-.flac
 *.aac
-.aac
 *.ogg
-.ogg
 *.wma
-.wma
 *.m4a
-.m4a
 *.aiff
-.aiff
 *.alac
-.alac
 *.dsd
-.dsd
 *.pcm
-.pcm
 *.opus
-.opus
 *.amr
-.amr
 *.mid
+
+# Model files (downloaded at runtime)
 *.pt
-.pt
-*.DS_Store
-.DS_Store
+*.pth
+*.bin
+*.safetensors
+models/
+
+# Python
 __pycache__/
-__pycache__
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+tts/
+venv/
+.venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test outputs
+outputs/
+
+# Dataset (too large)
+dataset/
+
+# Docs
+*.pdf
+*.docx
