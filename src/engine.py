@@ -1,13 +1,17 @@
 """
 Main TTS Engine for SYSPIN Multi-lingual TTS
 Loads and runs VITS models for inference
-Includes style/prosody control and Gujarati MMS support
+Supports:
+- JIT traced models (.pt) - Hindi, Bengali, Kannada, etc.
+- Coqui TTS checkpoints (.pth) - Bhojpuri, etc.
+- Facebook MMS models - Gujarati
+Includes style/prosody control
 """
 
 import os
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Union, List, Tuple
+from typing import Dict, Optional, Union, List, Tuple, Any
 import numpy as np
 import torch
 from dataclasses import dataclass
@@ -15,6 +19,8 @@ from dataclasses import dataclass
 from .config import LANGUAGE_CONFIGS, LanguageConfig, MODELS_DIR, STYLE_PRESETS
 from .tokenizer import TTSTokenizer, CharactersConfig, TextNormalizer
 from .downloader import ModelDownloader
+
+logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +158,7 @@ class TTSEngine:
     Features:
     - Style/prosody control (pitch, speed, energy)
     - Preset styles (happy, sad, calm, excited, etc.)
+    - JIT traced models (.pt) and Coqui TTS checkpoints (.pth)
     """
 
     def __init__(
@@ -171,13 +178,16 @@ class TTSEngine:
         self.models_dir = Path(models_dir)
         self.device = self._get_device(device)
 
-        # Model cache
+        # Model cache - JIT traced models (.pt)
         self._models: Dict[str, torch.jit.ScriptModule] = {}
         self._tokenizers: Dict[str, TTSTokenizer] = {}
 
+        # Coqui TTS models cache (.pth checkpoints)
+        self._coqui_models: Dict[str, Any] = {}  # Stores Synthesizer objects
+
         # MMS models cache (separate handling)
-        self._mms_models: Dict[str, any] = {}
-        self._mms_tokenizers: Dict[str, any] = {}
+        self._mms_models: Dict[str, Any] = {}
+        self._mms_tokenizers: Dict[str, Any] = {}
 
         # Downloader
         self.downloader = ModelDownloader(models_dir)
@@ -219,7 +229,8 @@ class TTSEngine:
         Returns:
             True if loaded successfully
         """
-        if voice_key in self._models:
+        # Check if already loaded
+        if voice_key in self._models or voice_key in self._coqui_models:
             return True
 
         if voice_key not in LANGUAGE_CONFIGS:
@@ -229,21 +240,32 @@ class TTSEngine:
         model_dir = self.models_dir / voice_key
 
         # Check if model exists, download if needed
-        model_path = model_dir / config.model_filename
-        if not model_path.exists():
+        if not model_dir.exists():
             if download_if_missing:
                 logger.info(f"Model not found, downloading {voice_key}...")
                 self.downloader.download_model(voice_key)
             else:
-                raise FileNotFoundError(f"Model not found: {model_path}")
+                raise FileNotFoundError(f"Model directory not found: {model_dir}")
 
-        # Find the actual model file (names vary)
-        model_files = list(model_dir.glob("*.pt"))
-        if not model_files:
-            raise FileNotFoundError(f"No .pt file found in {model_dir}")
+        # Check for Coqui TTS checkpoint (.pth) vs JIT traced model (.pt)
+        pth_files = list(model_dir.glob("*.pth"))
+        pt_files = list(model_dir.glob("*.pt"))
 
-        actual_model_path = model_files[0]
+        if pth_files:
+            # Load as Coqui TTS checkpoint
+            return self._load_coqui_voice(voice_key, model_dir, pth_files[0])
+        elif pt_files:
+            # Load as JIT traced model
+            return self._load_jit_voice(voice_key, model_dir, pt_files[0])
+        else:
+            raise FileNotFoundError(f"No .pt or .pth model file found in {model_dir}")
 
+    def _load_jit_voice(
+        self, voice_key: str, model_dir: Path, model_path: Path
+    ) -> bool:
+        """
+        Load a JIT traced VITS model (.pt file)
+        """
         # Load tokenizer
         chars_path = model_dir / "chars.txt"
         if chars_path.exists():
@@ -257,16 +279,69 @@ class TTSEngine:
                 raise FileNotFoundError(f"No chars.txt found in {model_dir}")
 
         # Load model
-        logger.info(f"Loading model from {actual_model_path}")
-        model = torch.jit.load(str(actual_model_path), map_location=self.device)
+        logger.info(f"Loading JIT model from {model_path}")
+        model = torch.jit.load(str(model_path), map_location=self.device)
         model.eval()
 
         # Cache model and tokenizer
         self._models[voice_key] = model
         self._tokenizers[voice_key] = tokenizer
 
-        logger.info(f"Loaded voice: {voice_key}")
+        logger.info(f"Loaded JIT voice: {voice_key}")
         return True
+
+    def _load_coqui_voice(
+        self, voice_key: str, model_dir: Path, checkpoint_path: Path
+    ) -> bool:
+        """
+        Load a Coqui TTS checkpoint model (.pth file)
+        """
+        config_path = model_dir / "config.json"
+        if not config_path.exists():
+            raise FileNotFoundError(f"No config.json found in {model_dir}")
+
+        try:
+            from TTS.utils.synthesizer import Synthesizer
+
+            logger.info(f"Loading Coqui TTS checkpoint from {checkpoint_path}")
+
+            # Create synthesizer with checkpoint and config
+            use_cuda = self.device.type == "cuda"
+            synthesizer = Synthesizer(
+                tts_checkpoint=str(checkpoint_path),
+                tts_config_path=str(config_path),
+                use_cuda=use_cuda,
+            )
+
+            # Cache synthesizer
+            self._coqui_models[voice_key] = synthesizer
+
+            logger.info(f"Loaded Coqui voice: {voice_key}")
+            return True
+
+        except ImportError:
+            raise ImportError(
+                "Coqui TTS library not installed. " "Install it with: pip install TTS"
+            )
+
+    def _synthesize_coqui(self, text: str, voice_key: str) -> Tuple[np.ndarray, int]:
+        """
+        Synthesize using Coqui TTS model (for Bhojpuri etc.)
+        """
+        if voice_key not in self._coqui_models:
+            self.load_voice(voice_key)
+
+        synthesizer = self._coqui_models[voice_key]
+        config = LANGUAGE_CONFIGS[voice_key]
+
+        # Generate audio
+        wav = synthesizer.tts(text)
+
+        # Convert to numpy array
+        audio_np = np.array(wav, dtype=np.float32)
+        sample_rate = synthesizer.output_sample_rate
+
+        return audio_np, sample_rate
 
     def _load_mms_voice(self, voice_key: str) -> bool:
         """
@@ -326,6 +401,8 @@ class TTSEngine:
         if voice_key in self._models:
             del self._models[voice_key]
             del self._tokenizers[voice_key]
+        if voice_key in self._coqui_models:
+            del self._coqui_models[voice_key]
         if voice_key in self._mms_models:
             del self._mms_models[voice_key]
             del self._mms_tokenizers[voice_key]
@@ -373,24 +450,32 @@ class TTSEngine:
         # Check if this is an MMS model (Gujarati)
         if "mms" in voice:
             audio_np, sample_rate = self._synthesize_mms(text, voice)
+        # Check if this is a Coqui TTS model (Bhojpuri etc.)
+        elif voice in self._coqui_models:
+            audio_np, sample_rate = self._synthesize_coqui(text, voice)
         else:
-            # Load voice if not cached (SYSPIN models)
-            if voice not in self._models:
+            # Try to load the voice (will determine JIT vs Coqui)
+            if voice not in self._models and voice not in self._coqui_models:
                 self.load_voice(voice)
 
-            model = self._models[voice]
-            tokenizer = self._tokenizers[voice]
+            # Check again after loading
+            if voice in self._coqui_models:
+                audio_np, sample_rate = self._synthesize_coqui(text, voice)
+            else:
+                # Use JIT model (SYSPIN models)
+                model = self._models[voice]
+                tokenizer = self._tokenizers[voice]
 
-            # Tokenize
-            token_ids = tokenizer.text_to_ids(text)
-            x = torch.from_numpy(np.array(token_ids)).unsqueeze(0).to(self.device)
+                # Tokenize
+                token_ids = tokenizer.text_to_ids(text)
+                x = torch.from_numpy(np.array(token_ids)).unsqueeze(0).to(self.device)
 
-            # Generate audio
-            with torch.no_grad():
-                audio = model(x)
+                # Generate audio
+                with torch.no_grad():
+                    audio = model(x)
 
-            audio_np = audio.squeeze().cpu().numpy()
-            sample_rate = config.sample_rate
+                audio_np = audio.squeeze().cpu().numpy()
+                sample_rate = config.sample_rate
 
         # Apply style modifications (pitch, speed, energy)
         audio_np = self.style_processor.apply_style(
@@ -448,13 +533,27 @@ class TTSEngine:
 
     def get_loaded_voices(self) -> List[str]:
         """Get list of currently loaded voices"""
-        return list(self._models.keys())
+        return (
+            list(self._models.keys())
+            + list(self._coqui_models.keys())
+            + list(self._mms_models.keys())
+        )
 
     def get_available_voices(self) -> Dict[str, Dict]:
         """Get all available voices with their status"""
         voices = {}
         for key, config in LANGUAGE_CONFIGS.items():
             is_mms = "mms" in key
+            model_dir = self.models_dir / key
+
+            # Determine model type
+            if is_mms:
+                model_type = "mms"
+            elif model_dir.exists() and list(model_dir.glob("*.pth")):
+                model_type = "coqui"
+            else:
+                model_type = "vits"
+
             voices[key] = {
                 "name": config.name,
                 "code": config.code,
@@ -463,9 +562,11 @@ class TTSEngine:
                     if "male" in key
                     else ("female" if "female" in key else "neutral")
                 ),
-                "loaded": key in self._models or key in self._mms_models,
+                "loaded": key in self._models
+                or key in self._coqui_models
+                or key in self._mms_models,
                 "downloaded": is_mms or self.downloader.get_model_path(key) is not None,
-                "type": "mms" if is_mms else "vits",
+                "type": model_type,
             }
         return voices
 

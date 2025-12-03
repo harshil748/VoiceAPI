@@ -22,7 +22,9 @@ class LanguageConfig:
     sample_rate: int = 22050
 
 
-# All SYSPIN models available for the 11 target languages
+# All SYSPIN models available
+# JIT traced format (.pt + chars.txt): Hindi, Bengali, Marathi, Telugu, Kannada, etc.
+# Coqui TTS checkpoints (.pth + config.json): Bhojpuri
 LANGUAGE_CONFIGS: Dict[str, LanguageConfig] = {
     # Hindi
     "hi_male": LanguageConfig(
@@ -35,124 +37,124 @@ LANGUAGE_CONFIGS: Dict[str, LanguageConfig] = {
         name="Hindi",
         code="hi",
         hf_model_id="SYSPIN/tts_vits_coquiai_HindiFemale",
-        model_filename="hi_female_vits_20hrs.pt",
+        model_filename="hi_female_vits_30hrs.pt",
     ),
     # Bengali
     "bn_male": LanguageConfig(
         name="Bengali",
         code="bn",
         hf_model_id="SYSPIN/tts_vits_coquiai_BengaliMale",
-        model_filename="bn_male_vits.pt",
+        model_filename="bn_male_vits_30hrs.pt",
     ),
     "bn_female": LanguageConfig(
         name="Bengali",
         code="bn",
         hf_model_id="SYSPIN/tts_vits_coquiai_BengaliFemale",
-        model_filename="bn_female_vits.pt",
+        model_filename="bn_female_vits_30hrs.pt",
     ),
     # Marathi
     "mr_male": LanguageConfig(
         name="Marathi",
         code="mr",
         hf_model_id="SYSPIN/tts_vits_coquiai_MarathiMale",
-        model_filename="mr_male_vits.pt",
+        model_filename="mr_male_vits_30hrs.pt",
     ),
     "mr_female": LanguageConfig(
         name="Marathi",
         code="mr",
         hf_model_id="SYSPIN/tts_vits_coquiai_MarathiFemale",
-        model_filename="mr_female_vits.pt",
+        model_filename="mr_female_vits_30hrs.pt",
     ),
     # Telugu
     "te_male": LanguageConfig(
         name="Telugu",
         code="te",
         hf_model_id="SYSPIN/tts_vits_coquiai_TeluguMale",
-        model_filename="te_male_vits.pt",
+        model_filename="te_male_vits_30hrs.pt",
     ),
     "te_female": LanguageConfig(
         name="Telugu",
         code="te",
         hf_model_id="SYSPIN/tts_vits_coquiai_TeluguFemale",
-        model_filename="te_female_vits.pt",
+        model_filename="te_female_vits_30hrs.pt",
     ),
     # Kannada
     "kn_male": LanguageConfig(
         name="Kannada",
         code="kn",
         hf_model_id="SYSPIN/tts_vits_coquiai_KannadaMale",
-        model_filename="kn_male_vits.pt",
+        model_filename="kn_male_vits_30hrs.pt",
     ),
     "kn_female": LanguageConfig(
         name="Kannada",
         code="kn",
         hf_model_id="SYSPIN/tts_vits_coquiai_KannadaFemale",
-        model_filename="kn_female_vits.pt",
+        model_filename="kn_female_vits_30hrs.pt",
     ),
-    # Bhojpuri
+    # Bhojpuri (Coqui TTS checkpoint format)
     "bho_male": LanguageConfig(
         name="Bhojpuri",
         code="bho",
         hf_model_id="SYSPIN/tts_vits_coquiai_BhojpuriMale",
-        model_filename="bho_male_vits.pt",
+        model_filename="checkpoint_200000.pth",
     ),
     "bho_female": LanguageConfig(
         name="Bhojpuri",
         code="bho",
         hf_model_id="SYSPIN/tts_vits_coquiai_BhojpuriFemale",
-        model_filename="bho_female_vits.pt",
+        model_filename="checkpoint_340000.pth",
     ),
-    # Chhattisgarhi
+    # Chhattisgarhi (ISO 639-3: hne)
     "hne_male": LanguageConfig(
         name="Chhattisgarhi",
         code="hne",
         hf_model_id="SYSPIN/tts_vits_coquiai_ChhattisgarhiMale",
-        model_filename="hne_male_vits.pt",
+        model_filename="ch_male_vits_30hrs.pt",
     ),
     "hne_female": LanguageConfig(
         name="Chhattisgarhi",
         code="hne",
         hf_model_id="SYSPIN/tts_vits_coquiai_ChhattisgarhiFemale",
-        model_filename="hne_female_vits.pt",
+        model_filename="ch_female_vits_30hrs.pt",
     ),
-    # Maithili
+    # Maithili (ISO 639-3: mai)
     "mai_male": LanguageConfig(
         name="Maithili",
         code="mai",
         hf_model_id="SYSPIN/tts_vits_coquiai_MaithiliMale",
-        model_filename="mai_male_vits.pt",
+        model_filename="mt_male_vits_30hrs.pt",
     ),
     "mai_female": LanguageConfig(
         name="Maithili",
         code="mai",
         hf_model_id="SYSPIN/tts_vits_coquiai_MaithiliFemale",
-        model_filename="mai_female_vits.pt",
+        model_filename="mt_female_vits_30hrs.pt",
     ),
-    # Magahi
+    # Magahi (ISO 639-3: mag)
     "mag_male": LanguageConfig(
         name="Magahi",
         code="mag",
         hf_model_id="SYSPIN/tts_vits_coquiai_MagahiMale",
-        model_filename="mag_male_vits.pt",
+        model_filename="mg_male_vits_30hrs.pt",
     ),
     "mag_female": LanguageConfig(
         name="Magahi",
         code="mag",
         hf_model_id="SYSPIN/tts_vits_coquiai_MagahiFemale",
-        model_filename="mag_female_vits.pt",
+        model_filename="mg_female_vits_30hrs.pt",
     ),
     # English
     "en_male": LanguageConfig(
         name="English",
         code="en",
         hf_model_id="SYSPIN/tts_vits_coquiai_EnglishMale",
-        model_filename="en_male_vits.pt",
+        model_filename="en_male_vits_30hrs.pt",
     ),
     "en_female": LanguageConfig(
         name="English",
         code="en",
         hf_model_id="SYSPIN/tts_vits_coquiai_EnglishFemale",
-        model_filename="en_female_vits.pt",
+        model_filename="en_female_vits_30hrs.pt",
     ),
     # Gujarati - Using Facebook MMS model (1100+ languages)
     "gu_mms": LanguageConfig(
