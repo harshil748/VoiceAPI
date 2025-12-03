@@ -27,3 +27,6 @@
 *.mid
 *.pt
 .pt
+
+# Test outputs
+outputs/
