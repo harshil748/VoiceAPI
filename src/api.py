@@ -62,25 +62,25 @@ app = FastAPI(
     description="""
     A multi-lingual Text-to-Speech API supporting 10+ Indian languages.
     
-    ## Features
-    - 10 Indian languages with male/female voices
+    # Features
+    - 11 Indian languages with male/female voices
     - Real-time speech synthesis
     - Text normalization for Indian languages
     - Speed control
     - Multiple audio formats (WAV, MP3)
     
-    ## Supported Languages
+    # Supported Languages
     Hindi, Bengali, Marathi, Telugu, Kannada, Bhojpuri, 
-    Chhattisgarhi, Maithili, Magahi, English
+    Chhattisgarhi, Maithili, Magahi, English And Gujarati.
     
-    ## Use Case
+    # Use Case
     Built for an LLM-based healthcare assistant for pregnant mothers
     in low-income communities.
     """,
     version="1.0.0",
     contact={
         "name": "Voice Tech for All Hackathon",
-        "url": "https://huggingface.co/SYSPIN",
+        "url": "https://syspin.iisc.ac.in/voicetechforall#about",
     },
     license_info={
         "name": "CC BY 4.0",
