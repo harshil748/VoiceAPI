@@ -6,6 +6,28 @@ A lightweight, multi-lingual Text-to-Speech system supporting **11 Indian langua
 
 Built for the healthcare assistant use case - helping pregnant mothers in low-income communities access healthcare information in their native languages.
 
+## 🏗️ System Architecture
+
+### Overall System Design
+
+![System Architecture](diagrams/system_architecture.png)
+
+### Data Flow
+
+![Data Flow](diagrams/data_flow.png)
+
+### VITS Model Architecture
+
+![Model Architecture](diagrams/model_architecture.png)
+
+### Training Pipeline
+
+![Training Pipeline](diagrams/training_pipeline.png)
+
+### Supported Languages & Voices
+
+![Voice Map](diagrams/voice_map.png)
+
 ## ✨ Features
 
 - **11 Indian Languages**: Hindi, Bengali, Marathi, Telugu, Kannada, Bhojpuri, Chhattisgarhi, Maithili, Magahi, English, **Gujarati**
