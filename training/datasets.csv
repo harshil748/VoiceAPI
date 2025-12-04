@@ -1,0 +1,14 @@
+Dataset Name,Language,URL,License,Type,Samples,Hours
+OpenSLR Hindi ASR Corpus,Hindi,https://www.openslr.org/103/,CC BY 4.0,Speech Recognition,10000,15
+OpenSLR Bengali Multi-speaker,Bengali,https://www.openslr.org/37/,CC BY 4.0,Speech Recognition,5000,8
+OpenSLR Marathi,Marathi,https://www.openslr.org/64/,CC BY 4.0,Speech Recognition,3000,5
+OpenSLR Telugu,Telugu,https://www.openslr.org/66/,CC BY 4.0,Speech Recognition,3000,5
+OpenSLR Kannada,Kannada,https://www.openslr.org/79/,CC BY 4.0,Speech Recognition,3000,5
+OpenSLR Gujarati,Gujarati,https://www.openslr.org/78/,CC BY 4.0,Speech Recognition,3000,5
+Mozilla Common Voice Hindi,Hindi,https://commonvoice.mozilla.org/hi/datasets,CC0,Crowdsourced Speech,20000,25
+Mozilla Common Voice Bengali,Bengali,https://commonvoice.mozilla.org/bn/datasets,CC0,Crowdsourced Speech,5000,8
+IndicTTS Dataset,Multiple,https://www.iitm.ac.in/donlab/tts/database.php,Research Only,TTS Corpus,50000,60
+Indic-Voices (AI4Bharat),Multiple,https://ai4bharat.iitm.ac.in/indic-voices/,CC BY 4.0,Multilingual Speech,100000,500
+Google FLEURS,Multiple,https://huggingface.co/datasets/google/fleurs,CC BY 4.0,Multilingual NLU,12000,15
+Kathbath (AI4Bharat),Hindi,https://github.com/AI4Bharat/vistaar,CC BY 4.0,Conversational Speech,8000,10
+Shrutilipi (AI4Bharat),Multiple,https://ai4bharat.iitm.ac.in/shrutilipi/,CC BY 4.0,ASR Corpus,50000,100
