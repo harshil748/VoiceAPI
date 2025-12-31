@@ -93,7 +93,7 @@ curl -X GET "https://harshil748-voiceapi.hf.space/Get_Inference?text=નમસ�
 
 ## 📡 API Reference
 
-### GET /Get_Inference (Official Hackathon Endpoint)
+### GET /Get_Inference
 
 Converts text to speech in any supported Indian language.
 
