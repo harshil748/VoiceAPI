@@ -236,7 +236,7 @@ VoiceAPI/
 
 ## 🎓 Technical Report
 
-Read the full technical writeup: [technical_report.tex](technical_report.tex)
+Read the full technical writeup: [VoiceAPI.pdf](technical_report.tex)
 
 **Key Contributions:**
 
