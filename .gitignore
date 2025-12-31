@@ -51,7 +51,6 @@ outputs/
 dataset/
 
 # Docs
-*.pdf
 *.docx
 
 # Cache
