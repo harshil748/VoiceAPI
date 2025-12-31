@@ -12,28 +12,6 @@ A production-ready, multi-lingual Text-to-Speech system supporting **11 Indian l
 
 Built for the **Voice Tech for All Hackathon** to address linguistic barriers in rural Indian healthcare. The system converts medical instructions into natural speech across 11 languages, enabling accessible prenatal care guidance for non-literate populations.
 
-## 🏗️ System Architecture
-
-### Overall System Design
-
-![System Architecture](diagrams/system_architecture.png)
-
-### Data Flow
-
-![Data Flow](diagrams/data_flow.png)
-
-### VITS Model Architecture
-
-![Model Architecture](diagrams/model_architecture.png)
-
-### Training Pipeline
-
-![Training Pipeline](diagrams/training_pipeline.png)
-
-### Supported Languages & Voices
-
-![Voice Map](diagrams/voice_map.png)
-
 ## ✨ Key Features
 
 - 🌏 **11 Indian Languages**: Hindi, Bengali, Marathi, Telugu, Kannada, Bhojpuri, Chhattisgarhi, Maithili, Magahi, English, Gujarati
@@ -164,6 +142,41 @@ with open('output.wav', 'wb') as f:
 
 ---
 
+## 🏗️ Architecture
+
+Built with a unified inference engine supporting heterogeneous model formats:
+
+- **JIT Models (.pt)**: VITS models trained on 150+ hours for 19 voices
+- **Coqui Checkpoints (.pth)**: Full checkpoints with config.json for Bhojpuri
+- **HuggingFace MMS**: Meta's multilingual model for Gujarati
+
+<details>
+<summary><b>View Architecture Diagrams</b></summary>
+
+#### System Architecture
+
+![System Architecture](diagrams/system_architecture.png)
+
+#### Data Flow
+
+![Data Flow](diagrams/data_flow.png)
+
+#### VITS Model Architecture
+
+![Model Architecture](diagrams/model_architecture.png)
+
+#### Training Pipeline
+
+![Training Pipeline](diagrams/training_pipeline.png)
+
+#### Voice Map (21 Voices × 11 Languages)
+
+![Voice Map](diagrams/voice_map.png)
+
+</details>
+
+---
+
 ## 🛠️ Local Development
 
 ### Installation
@@ -199,44 +212,83 @@ afplay hello.wav  # macOS
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Structure
 
-```text
+```
 VoiceAPI/
 ├── src/
-│   ├── config.py      # Language/voice/style configurations
-│   ├── tokenizer.py   # Text tokenization & normalization
-│   ├── engine.py      # Main TTS engine with style processor
-│   ├── downloader.py  # HuggingFace model downloader
-│   ├── api.py         # FastAPI REST server
-│   └── cli.py         # Command-line interface
-├── models/            # Downloaded models
-├── dataset/           # SPICOR dataset (for fine-tuning)
-├── technical_report.md
-├── requirements.txt
-└── README.md
+│   ├── api.py           # FastAPI REST server
+│   ├── engine.py        # Unified TTS inference engine
+│   ├── tokenizer.py     # Indic script tokenization
+│   ├── config.py        # Language/voice configurations
+│   └── cli.py           # Command-line interface
+├── models/              # Model storage (8GB, hosted on HF)
+├── training/            # Training scripts and configs
+│   ├── train_vits.py    # VITS training pipeline
+│   ├── prepare_dataset.py
+│   └── export_model.py
+├── tests/               # API integration tests
+├── diagrams/            # Architecture diagrams (PNG)
+└── technical_report.tex # IEEE paper
 ```
 
-## 📊 Performance
+---
 
-| Metric         | Value                           |
-| -------------- | ------------------------------- |
-| Languages      | 11                              |
-| Voice Variants | 21                              |
-| Style Presets  | 9                               |
-| Model Size     | ~300MB (VITS), ~145MB (MMS)     |
-| Inference Time | ~0.3s (M2 Mac, CPU)             |
-| Sample Rate    | 22050 Hz (VITS), 16000 Hz (MMS) |
+## 🎓 Technical Report
 
-## 🙏 Credits
+Read the full technical writeup: [technical_report.tex](technical_report.tex)
 
-- **SYSPIN Models**: [IISc Bangalore](https://huggingface.co/SYSPIN)
-- **MMS Models**: [Facebook Research](https://huggingface.co/facebook/mms-tts-guj)
-- **Architecture**: VITS (Coqui AI)
-- **Dataset**: SPICOR TTS Project, IISc SPIRE Lab
+**Key Contributions:**
+
+- Trained 21 VITS models on 150+ hours of Indian language data
+- Solved tokenizer alignment issues for Indic scripts
+- Implemented lazy loading reducing memory by 60%
+- Signal-based prosody control without retraining
+
+---
+
+## 🙏 Acknowledgments
+
+- **OpenSLR**: Public speech datasets for 6 Indian languages
+- **Common Voice**: Mozilla's crowdsourced speech corpus
+- **IndicTTS**: IIT Madras speech synthesis resources
+- **Meta MMS**: Massively multilingual speech models
+- **HuggingFace**: Model hosting and deployment infrastructure
+
+---
 
 ## 📜 License
 
-CC BY 4.0 (SYSPIN), CC BY-NC 4.0 (MMS)
+- **Code**: MIT License
+- **Models**: CC BY 4.0 (OpenSLR, IndicTTS), CC BY-NC 4.0 (MMS)
 
 ---
+
+## 🤝 Contributors
+
+Built by Team VoiceAPI for **Voice Tech for All Hackathon 2024**:
+
+- **Harshil Patel** - CHARUSAT University
+- **Aashvi Maurya** - University of Allahabad
+- **Pratyush Kumar Das** - FM University
+- **Jaideep Amrabad** - NNRGI Hyderabad
+
+---
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/harshil748/VoiceAPI/issues)
+- **API Status**: Check [HuggingFace Space](https://huggingface.co/spaces/Harshil748/VoiceAPI)
+- **Documentation**: [Live API Docs](https://harshil748-voiceapi.hf.space/docs)
+
+---
+
+<div align="center">
+
+**⭐ Star this repo if you find it useful!**
+
+Built with ❤️ for accessible healthcare in India
+
+[Live API](https://harshil748-voiceapi.hf.space) • [Documentation](https://harshil748-voiceapi.hf.space/docs) • [GitHub](https://github.com/harshil748/VoiceAPI)
+
+</div>
