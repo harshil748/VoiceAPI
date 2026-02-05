@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-"""
-Local API Testing Script
-Tests the VoiceAPI running on localhost:8000
-Saves all outputs to local_tests/outputs/ folder
-"""
-
 import os
 import wave
 import time
@@ -47,7 +40,7 @@ def generate_reference_wav(sample_rate: int = 22050, duration: float = 1.0):
         wf.setframerate(sample_rate)
         wf.writeframes(pcm.tobytes())
 
-    print(f"✓ Generated reference WAV: {REFERENCE_WAV}")
+    print(f"Generated reference WAV: {REFERENCE_WAV}")
 
 
 def test_api_endpoint(lang: str, text: str):
@@ -81,11 +74,11 @@ def test_api_endpoint(lang: str, text: str):
                 f.write(response.content)
 
             file_size = output_path.stat().st_size
-            print(f"✅ SUCCESS")
-            print(f"   Status: {response.status_code}")
-            print(f"   Latency: {elapsed_time:.2f}s")
-            print(f"   Output: {output_filename}")
-            print(f"   Size: {file_size:,} bytes")
+            print(f"SUCCESS")
+            print(f"Status: {response.status_code}")
+            print(f"Latency: {elapsed_time:.2f}s")
+            print(f"Output: {output_filename}")
+            print(f"Size: {file_size:,} bytes")
 
             return {
                 "lang": lang,
@@ -95,19 +88,19 @@ def test_api_endpoint(lang: str, text: str):
                 "output": output_filename,
             }
         else:
-            print(f"❌ FAILED")
-            print(f"   Status: {response.status_code}")
-            print(f"   Error: {response.text[:200]}")
+            print(f"FAILED")
+            print(f"Status: {response.status_code}")
+            print(f"Error: {response.text[:200]}")
 
             return {"lang": lang, "status": "failed", "error": response.status_code}
 
     except requests.exceptions.ConnectionError:
-        print(f"❌ CONNECTION ERROR")
-        print(f"   Make sure the API server is running on localhost:8000")
+        print(f"CONNECTION ERROR")
+        print(f"Make sure the API server is running on localhost:8000")
         return {"lang": lang, "status": "connection_error"}
 
     except Exception as e:
-        print(f"❌ ERROR: {str(e)}")
+        print(f"ERROR: {str(e)}")
         return {"lang": lang, "status": "error", "error": str(e)}
 
 
@@ -131,9 +124,8 @@ def run_all_tests():
         time.sleep(0.5)  # Small delay between requests
 
     # Summary
-    print(f"\n{'='*60}")
     print("TEST SUMMARY")
-    print(f"{'='*60}")
+ 
 
     success_count = sum(1 for r in results if r.get("status") == "success")
     failed_count = len(results) - success_count
@@ -150,7 +142,7 @@ def run_all_tests():
         print(f"Avg Latency: {avg_latency:.2f}s")
 
     print(f"\nOutputs saved to: {OUTPUTS_DIR}")
-    print(f"{'='*60}\n")
+    
 
     # List all output files
     output_files = sorted(OUTPUTS_DIR.glob("*.wav"))
