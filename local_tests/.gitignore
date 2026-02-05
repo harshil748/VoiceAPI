@@ -1,0 +1,3 @@
+# Ignore test outputs
+local_tests/outputs/*.wav
+!local_tests/outputs/.gitkeep
