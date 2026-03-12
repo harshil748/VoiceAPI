@@ -189,6 +189,9 @@ class TTSEngine:
         self._mms_models: Dict[str, Any] = {}
         self._mms_tokenizers: Dict[str, Any] = {}
 
+        # Voice cloning model cache (XTTS)
+        self._xtts_model: Optional[Any] = None
+
         # Downloader
         self.downloader = ModelDownloader(models_dir)
 
@@ -408,6 +411,81 @@ class TTSEngine:
             del self._mms_tokenizers[voice_key]
         torch.cuda.empty_cache() if self.device.type == "cuda" else None
         logger.info(f"Unloaded voice: {voice_key}")
+
+    def _get_xtts_model(self):
+        """Lazy-load Coqui XTTS model used for voice cloning."""
+        if self._xtts_model is not None:
+            return self._xtts_model
+
+        try:
+            from TTS.api import TTS
+        except ImportError as exc:
+            raise ImportError(
+                "Coqui TTS is required for voice cloning. Install with: pip install TTS"
+            ) from exc
+
+        logger.info("Loading XTTS v2 voice cloning model...")
+        self._xtts_model = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
+        if self.device.type == "cuda":
+            self._xtts_model = self._xtts_model.to("cuda")
+        logger.info("XTTS v2 loaded")
+        return self._xtts_model
+
+    def clone_voice(
+        self,
+        text: str,
+        speaker_wav_path: str,
+        language_code: str = "en",
+        speed: float = 1.0,
+        pitch: float = 1.0,
+        energy: float = 1.0,
+        style: Optional[str] = None,
+        normalize_text: bool = True,
+    ) -> TTSOutput:
+        """
+        Clone a speaker voice from a reference WAV using XTTS v2.
+
+        Args:
+            text: Input text to synthesize.
+            speaker_wav_path: Path to speaker reference WAV file.
+            language_code: XTTS language code (e.g. en, hi, bn).
+            speed/pitch/energy/style: Optional post-processing controls.
+            normalize_text: Whether to normalize text before synthesis.
+        """
+        xtts = self._get_xtts_model()
+
+        if normalize_text:
+            text = self.normalizer.clean_text(text, language_code)
+
+        wav = xtts.tts(
+            text=text,
+            speaker_wav=speaker_wav_path,
+            language=language_code,
+        )
+
+        audio_np = np.array(wav, dtype=np.float32)
+        sample_rate = 24000  # XTTS default output sample rate
+
+        # Apply existing style stack for consistent controls
+        if style and style in STYLE_PRESETS:
+            preset = STYLE_PRESETS[style]
+            speed = speed * preset["speed"]
+            pitch = pitch * preset["pitch"]
+            energy = energy * preset["energy"]
+
+        audio_np = self.style_processor.apply_style(
+            audio_np, sample_rate, speed=speed, pitch=pitch, energy=energy
+        )
+
+        duration = len(audio_np) / sample_rate
+        return TTSOutput(
+            audio=audio_np,
+            sample_rate=sample_rate,
+            duration=duration,
+            voice="custom_cloned",
+            text=text,
+            style=style,
+        )
 
     def synthesize(
         self,

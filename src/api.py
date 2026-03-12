@@ -37,6 +37,17 @@ from .config import (
     STYLE_PRESETS,
 )
 
+# Language mapping for XTTS voice cloning
+XTTS_LANG_MAP = {
+    "english": "en",
+    "hindi": "hi",
+    "bengali": "bn",
+    "gujarati": "gu",
+    "marathi": "mr",
+    "telugu": "te",
+    "kannada": "kn",
+}
+
 # Language name to voice key mapping (for hackathon API)
 LANG_TO_VOICE = {
     "hindi": "hi_female",
@@ -150,6 +161,16 @@ class SynthesizeResponse(BaseModel):
     voice: str
     text: str
     inference_time: float
+
+
+class CloneResponse(BaseModel):
+    """Response metadata for voice cloning"""
+
+    success: bool
+    duration: float
+    sample_rate: int
+    inference_time: float
+    language: str
 
 
 class VoiceInfo(BaseModel):
@@ -330,6 +351,86 @@ async def synthesize_stream(request: SynthesizeRequest):
     except Exception as e:
         logger.error(f"Streaming error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/clone", response_class=Response)
+async def clone_voice(
+    text: str = Query(..., description="Text to synthesize with cloned voice"),
+    lang: str = Query(
+        "english",
+        description="Language name (english, hindi, bengali, gujarati, marathi, telugu, kannada)",
+    ),
+    speed: float = Query(1.0, description="Speech speed", ge=0.5, le=2.0),
+    pitch: float = Query(1.0, description="Pitch", ge=0.5, le=2.0),
+    energy: float = Query(1.0, description="Energy", ge=0.5, le=2.0),
+    style: Optional[str] = Query(None, description="Style preset"),
+    speaker_wav: UploadFile = File(
+        ..., description="Reference speaker WAV (3-15 seconds recommended)"
+    ),
+):
+    """
+    Clone a custom voice from uploaded sample using XTTS v2.
+    """
+    engine = get_engine()
+    lang_lower = lang.lower().strip()
+
+    if lang_lower not in XTTS_LANG_MAP:
+        supported = ", ".join(sorted(XTTS_LANG_MAP.keys()))
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported clone language: {lang}. Supported: {supported}",
+        )
+
+    # Save uploaded speaker sample to temp file
+    temp_path = None
+    try:
+        data = await speaker_wav.read()
+        if len(data) < 44:
+            raise HTTPException(status_code=400, detail="Invalid speaker_wav file")
+
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            tmp.write(data)
+            temp_path = tmp.name
+
+        start_time = time.time()
+        output = engine.clone_voice(
+            text=text,
+            speaker_wav_path=temp_path,
+            language_code=XTTS_LANG_MAP[lang_lower],
+            speed=speed,
+            pitch=pitch,
+            energy=energy,
+            style=style,
+            normalize_text=True,
+        )
+        inference_time = time.time() - start_time
+
+        buffer = io.BytesIO()
+        sf.write(buffer, output.audio, output.sample_rate, format="WAV")
+        buffer.seek(0)
+
+        return Response(
+            content=buffer.read(),
+            media_type="audio/wav",
+            headers={
+                "X-Duration": str(output.duration),
+                "X-Sample-Rate": str(output.sample_rate),
+                "X-Language": lang_lower,
+                "X-Voice": "custom_cloned",
+                "X-Inference-Time": str(inference_time),
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Clone error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
 
 
 @app.get("/synthesize/get")
