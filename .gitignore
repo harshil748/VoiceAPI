@@ -56,3 +56,6 @@ dataset/
 # Cache
 .cache/
 models/*/.cache/
+
+.next/
+node_modules/
