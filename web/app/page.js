@@ -42,63 +42,12 @@ const LANG_VOICE_MAP = {
 	gujarati: { male: "gu_mms", female: "gu_mms" },
 };
 
-const CLONE_SCRIPT = {
-	hindi: [
-		"नमस्ते, मेरा नाम [अपना नाम] है और मैं आज अपनी आवाज़ रिकॉर्ड कर रहा/रही हूँ।",
-		"कृपया मातृ स्वास्थ्य से जुड़ी जानकारी ध्यान से सुनें और समय पर जांच कराएं।",
-		"मैं साफ़ आवाज़ में धीरे और समान गति से बोल रहा/रही हूँ।",
-	],
-	bengali: [
-		"নমস্কার, আমার নাম [আপনার নাম] এবং আমি আজ আমার কণ্ঠ রেকর্ড করছি।",
-		"মাতৃস্বাস্থ্য সংক্রান্ত তথ্য মনোযোগ দিয়ে শুনুন এবং সময়মতো পরীক্ষা করুন।",
-		"আমি স্পষ্টভাবে এবং একই গতিতে কথা বলছি।",
-	],
-	marathi: [
-		"नमस्कार, माझे नाव [तुमचे नाव] आहे आणि मी आज माझा आवाज रेकॉर्ड करत आहे.",
-		"मातृ आरोग्याशी संबंधित माहिती लक्षपूर्वक ऐका आणि वेळेवर तपासणी करा.",
-		"मी स्पष्ट आणि स्थिर गतीने बोलत आहे.",
-	],
-	telugu: [
-		"నమస్కారం, నా పేరు [మీ పేరు] మరియు నేను ఈ రోజు నా స్వరాన్ని రికార్డ్ చేస్తున్నాను.",
-		"మాతృ ఆరోగ్య సమాచారాన్ని జాగ్రత్తగా విని సమయానికి పరీక్ష చేయించుకోండి.",
-		"నేను స్పష్టంగా మరియు సమాన వేగంతో మాట్లాడుతున్నాను.",
-	],
-	kannada: [
-		"ನಮಸ್ಕಾರ, ನನ್ನ ಹೆಸರು [ನಿಮ್ಮ ಹೆಸರು] ಮತ್ತು ನಾನು ಇಂದು ನನ್ನ ಧ್ವನಿಯನ್ನು ದಾಖಲಿಸುತ್ತಿದ್ದೇನೆ.",
-		"ತಾಯಿ ಆರೋಗ್ಯದ ಮಾಹಿತಿಯನ್ನು ಗಮನದಿಂದ ಕೇಳಿ ಮತ್ತು ಸಮಯಕ್ಕೆ ತಪಾಸಣೆ ಮಾಡಿಸಿಕೊಳ್ಳಿ.",
-		"ನಾನು ಸ್ಪಷ್ಟವಾಗಿ ಮತ್ತು ಒಂದೇ ವೇಗದಲ್ಲಿ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ.",
-	],
-	bhojpuri: [
-		"प्रणाम, हमार नाम [आपन नाव] बा आ आज हम आपन आवाज रिकॉर्ड करत बानी।",
-		"मातृ स्वास्थ्य से जुड़ल जानकारी ध्यान से सुनीं आ समय पर जांच कराईं।",
-		"हम साफ आवाज में धीरे-धीरे बोलत बानी।",
-	],
-	chhattisgarhi: [
-		"नमस्कार, मोर नाव [आपके नाव] हे अउ मंय आज अपन आवाज रिकॉर्ड करत हंव।",
-		"मातृ स्वास्थ्य के जानकारी ला ध्यान ले सुनव अउ समय म जांच करवावव।",
-		"मंय साफ अउ एके जइसन गति म बोलत हंव।",
-	],
-	maithili: [
-		"प्रणाम, हमर नाम [अपन नाम] अछि आ आइ हम अपन आवाज रिकॉर्ड कऽ रहल छी।",
-		"मातृ स्वास्थ्यक जानकारी ध्यानसँ सुनू आ समय पर जांच कराउ।",
-		"हम स्पष्ट आ एके गति सँ बाजि रहल छी।",
-	],
-	magahi: [
-		"प्रणाम, हमर नाव [अपन नाव] हई आ आज हम अपन आवाज रिकॉर्ड कर रहल हिअइ।",
-		"मातृ स्वास्थ्य के जानकारी ध्यान से सुनीं आ समय पर जांच कराईं।",
-		"हम साफ आवाज में बराबर रफ्तार से बोल रहल हिअइ।",
-	],
-	english: [
-		"Hello, my name is [your name], and this is my voice sample recording.",
-		"Please listen to maternal health guidance carefully and take timely checkups.",
-		"I am speaking clearly at a steady pace with minimal background noise.",
-	],
-	gujarati: [
-		"નમસ્તે, મારું નામ [તમારું નામ] છે અને હું આજે મારો અવાજ રેકોર્ડ કરું છું.",
-		"માતૃત્વ આરોગ્યની માહિતી ધ્યાનથી સાંભળો અને સમયસર તપાસ કરાવો.",
-		"હું સ્પષ્ટ અવાજમાં અને સમાન ગતિએ બોલું છું.",
-	],
-};
+const PERFECT_CLONE_SCRIPT = [
+	"Hello, my name is [your name], and this is my clean voice sample for cloning.",
+	"Today I am speaking naturally, with steady pace, clear pronunciation, and consistent volume.",
+	"Please include numbers one to ten, short questions, and normal sentence endings for better prosody.",
+	"For example: How are you today? I am fine. The date is twenty-first March, and the time is nine thirty.",
+];
 
 export default function HomePage() {
 	const apiBase =
@@ -123,9 +72,7 @@ export default function HomePage() {
 		return byLang[gender] || byLang.female;
 	}, [language, gender]);
 
-	const scriptLines = useMemo(() => {
-		return CLONE_SCRIPT[language] || CLONE_SCRIPT.english;
-	}, [language]);
+	const scriptLines = PERFECT_CLONE_SCRIPT;
 
 	const onGenerate = async () => {
 		setIsLoading(true);
@@ -338,7 +285,7 @@ export default function HomePage() {
 								{showScriptGuide && (
 									<div className='guidePanel'>
 										<p className='guideTitle'>
-											Recommended script ({language})
+											Perfect clone script (speak this exactly)
 										</p>
 										<ol className='guideList'>
 											{scriptLines.map((line, idx) => (
@@ -346,8 +293,9 @@ export default function HomePage() {
 											))}
 										</ol>
 										<p className='guideTips'>
-											Tips: Record 8-15 seconds, quiet room, hold phone 15-20 cm
-											away, avoid music/noise, speak naturally.
+											Tips: Record 10-20 seconds in one take, quiet room, 15-20
+											cm from mic, no music/reverb, no clipping, and use the
+											same language as your synthesis text for best quality.
 										</p>
 									</div>
 								)}
