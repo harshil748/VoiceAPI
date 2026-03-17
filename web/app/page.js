@@ -66,6 +66,7 @@ export default function HomePage() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [message, setMessage] = useState("Ready");
 	const [isError, setIsError] = useState(false);
+	const [mousePos, setMousePos] = useState({ x: 420, y: 180 });
 
 	const selectedVoice = useMemo(() => {
 		const byLang = LANG_VOICE_MAP[language] || LANG_VOICE_MAP.hindi;
@@ -136,8 +137,19 @@ export default function HomePage() {
 		}
 	};
 
+	const onMouseMove = (event) => {
+		setMousePos({ x: event.clientX, y: event.clientY });
+	};
+
 	return (
-		<main className='main'>
+		<main
+			className='main'
+			onMouseMove={onMouseMove}
+			style={{
+				"--mx": `${mousePos.x}px`,
+				"--my": `${mousePos.y}px`,
+			}}>
+			<div className='sparkLayer' aria-hidden='true' />
 			<div className='container'>
 				<header className='header'>
 					<h1 className='title'>VoiceAPI Studio</h1>

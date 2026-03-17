@@ -26,12 +26,63 @@ body {
 .main {
 	min-height: 100vh;
 	width: 100%;
-	padding: 32px 16px;
+	padding: 32px 20px;
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
 }
 
 .container {
-	max-width: 960px;
+	max-width: 1220px;
 	margin: 0 auto;
+	position: relative;
+	z-index: 2;
+}
+
+.sparkLayer {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	background:
+		radial-gradient(
+			140px circle at var(--mx) var(--my),
+			rgba(255, 122, 0, 0.32),
+			transparent 72%
+		),
+		radial-gradient(
+			2px 2px at calc(var(--mx) + 34px) calc(var(--my) - 12px),
+			rgba(255, 191, 135, 0.95),
+			transparent 65%
+		),
+		radial-gradient(
+			1.5px 1.5px at calc(var(--mx) - 28px) calc(var(--my) + 20px),
+			rgba(255, 174, 92, 0.9),
+			transparent 70%
+		),
+		radial-gradient(
+			2px 2px at calc(var(--mx) + 12px) calc(var(--my) + 30px),
+			rgba(255, 150, 51, 0.9),
+			transparent 70%
+		),
+		radial-gradient(
+			180px circle at 88% 12%,
+			rgba(255, 122, 0, 0.06),
+			transparent 78%
+		);
+	filter: saturate(1.12);
+	transition: background-position 120ms linear;
+	animation: sparkTwinkle 2.8s ease-in-out infinite;
+}
+
+@keyframes sparkTwinkle {
+	0%,
+	100% {
+		opacity: 0.9;
+	}
+	50% {
+		opacity: 1;
+	}
 }
 
 .header {
@@ -60,18 +111,19 @@ body {
 		var(--card);
 	border: 1px solid var(--border);
 	border-radius: 14px;
-	padding: 18px;
+	padding: 22px;
+	backdrop-filter: blur(2px);
 }
 
 .grid {
 	display: grid;
 	grid-template-columns: 1fr;
-	gap: 16px;
+	gap: 20px;
 }
 
-@media (min-width: 820px) {
+@media (min-width: 980px) {
 	.grid-2 {
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1.02fr 1.18fr;
 	}
 }
 
