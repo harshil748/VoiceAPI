@@ -172,3 +172,42 @@ body {
 .error {
 	color: #ffab77;
 }
+
+.guideButton {
+	margin-top: 10px;
+	width: 100%;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1px solid #7a3a00;
+	background: rgba(255, 122, 0, 0.12);
+	color: #ffb36e;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.guidePanel {
+	margin-top: 10px;
+	padding: 12px;
+	border: 1px solid #6a3400;
+	border-radius: 10px;
+	background: rgba(255, 122, 0, 0.08);
+}
+
+.guideTitle {
+	margin: 0 0 8px;
+	font-weight: 700;
+	color: #ffd2a8;
+}
+
+.guideList {
+	margin: 0;
+	padding-left: 18px;
+	color: #ffe7d2;
+	line-height: 1.5;
+}
+
+.guideTips {
+	margin: 10px 0 0;
+	font-size: 0.88rem;
+	color: #ffbe84;
+}
