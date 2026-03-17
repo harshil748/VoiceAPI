@@ -266,12 +266,11 @@ Read the full technical writeup: [VoiceAPI.pdf](VoiceAPI.pdf)
 
 ## 🤝 Contributors
 
-Built by Team VoiceAPI for **Voice Tech for All Hackathon 2024**:
+Built by Team VoiceAPI:
 
 - **Harshil Patel** - CHARUSAT University
-- **Aashvi Maurya** - University of Allahabad
-- **Pratyush Kumar Das** - FM University
-- **Jaideep Amrabad** - NNRGI Hyderabad
+- **Harnish Patel** - CHARUSAT University
+- **Aman PAya** - CHARUSAT University
 
 ---
 
@@ -287,7 +286,6 @@ Built by Team VoiceAPI for **Voice Tech for All Hackathon 2024**:
 
 **⭐ Star this repo if you find it useful!**
 
-Built with ❤️ for accessible healthcare in India
 
 [Live API](https://harshil748-voiceapi.hf.space) • [Documentation](https://harshil748-voiceapi.hf.space/docs) • [GitHub](https://github.com/harshil748/VoiceAPI)
 
