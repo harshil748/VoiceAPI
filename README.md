@@ -16,15 +16,42 @@ Built for the **Voice Tech for All Hackathon** to address linguistic barriers in
 
 - 🌏 **11 Indian Languages**: Hindi, Bengali, Marathi, Telugu, Kannada, Bhojpuri, Chhattisgarhi, Maithili, Magahi, English, Gujarati
 - 🎤 **21 Voice Variants**: Male & Female voices trained on 150+ hours of speech data
+- 🧬 **Custom Voice Cloning**: Clone user voice from uploaded WAV sample using XTTS v2
 - 🎭 **Prosody Control**: 9 style presets (calm, happy, sad, slow, fast, etc.)
 - ⚡ **Real-time Performance**: 0.3-0.9s inference on CPU hardware
 - 🔌 **Production REST API**: FastAPI with automatic docs, CORS support
 - 🧠 **Neural Architecture**: VITS + Meta MMS models with JIT optimization
+- 🖥️ **Modern Web UI**: Next.js frontend (black/orange) with playback + WAV download
 - 📦 **Deployed on HuggingFace Spaces**: Always-on, cloud-hosted API
 
 ---
 
 ## 🚀 Try It Now (No Installation Required)
+
+### Custom Voice Cloning (Recommended)
+
+```python
+import requests
+
+base_url = 'https://harshil748-voiceapi.hf.space/clone'
+
+params = {
+    'text': 'नमस्ते, मैं आपकी कैसे मदद कर सकता हूँ?',
+    'lang': 'hindi',
+    'style': 'calm',
+    'speed': 1.0,
+    'pitch': 1.0,
+    'energy': 1.0,
+}
+
+with open('reference.wav', 'rb') as audio:
+    response = requests.post(base_url, params=params, files={'speaker_wav': audio})
+
+if response.status_code == 200:
+    with open('cloned_output.wav', 'wb') as f:
+        f.write(response.content)
+    print("✅ Audio saved as 'cloned_output.wav'")
+```
 
 ### Test with Python
 
@@ -39,7 +66,8 @@ params = {
     'lang': 'hindi',
 }
 
-# Upload any WAV file as speaker reference
+# speaker_wav is required for spec compatibility
+# For actual voice cloning, use /clone endpoint shown above.
 with open('reference.wav', 'rb') as audio:
     response = requests.get(base_url, params=params, files={'speaker_wav': audio})
 
@@ -52,9 +80,9 @@ if response.status_code == 200:
 ### Test with cURL
 
 ```bash
-curl -X GET "https://harshil748-voiceapi.hf.space/Get_Inference?text=નમસ્તે&lang=gujarati" \
+curl -X POST "https://harshil748-voiceapi.hf.space/clone?text=નમસ્તે&lang=gujarati&style=default&speed=1&pitch=1&energy=1" \
   -F "speaker_wav=@reference.wav" \
-  -o output.wav
+    -o cloned_output.wav
 ```
 
 ### Test with Postman
@@ -68,6 +96,36 @@ curl -X GET "https://harshil748-voiceapi.hf.space/Get_Inference?text=નમસ�
    - Key: `speaker_wav` (Type: File)
    - Value: Upload any `.wav` file
 5. **Send** → Save response as `.wav` file
+
+---
+
+## 🌐 Web UI (Next.js)
+
+A polished black/orange web app is available in the `web/` folder with:
+
+- Language selector dropdown
+- Male/Female voice toggle (standard voice mode)
+- Text input box
+- Style/speed/pitch controls
+- Custom voice cloning mode with WAV upload
+- Audio playback and download button
+
+### Run UI Locally
+
+```bash
+cd web
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`
+
+### Deploy to Vercel
+
+- Import repo in Vercel and set **Root Directory** to `web`
+- Add env var: `NEXT_PUBLIC_API_BASE=https://harshil748-voiceapi.hf.space`
+- Deploy and point domain to `voiceapi.vercel.app`
 
 ---
 
@@ -93,6 +151,28 @@ curl -X GET "https://harshil748-voiceapi.hf.space/Get_Inference?text=નમસ�
 
 ## 📡 API Reference
 
+### POST /clone (Custom Voice Cloning)
+
+Synthesizes speech in the uploaded speaker's voice.
+
+**Endpoint**: `https://harshil748-voiceapi.hf.space/clone`
+
+**Parameters**:
+
+| Parameter     | Type   | Required | Description                                                           |
+| ------------- | ------ | -------- | --------------------------------------------------------------------- |
+| `text`        | string | ✅       | Text to convert to speech                                             |
+| `lang`        | string | ✅       | Language: english, hindi, bengali, gujarati, marathi, telugu, kannada |
+| `speaker_wav` | file   | ✅       | Reference WAV for cloning (3-15 sec recommended)                      |
+| `style`       | string | ❌       | Style preset (`default`, `calm`, `happy`, etc.)                       |
+| `speed`       | float  | ❌       | Speech speed (0.5-2.0)                                                |
+| `pitch`       | float  | ❌       | Pitch multiplier (0.5-2.0)                                            |
+| `energy`      | float  | ❌       | Energy multiplier (0.5-2.0)                                           |
+
+**Response**: `audio/wav` file (200 OK)
+
+---
+
 ### GET /Get_Inference
 
 Converts text to speech in any supported Indian language.
@@ -105,7 +185,7 @@ Converts text to speech in any supported Indian language.
 | ------------- | ------ | -------- | ----------------------------------------------------- |
 | `text`        | string | ✅       | Text to convert to speech (English must be lowercase) |
 | `lang`        | string | ✅       | Language code (see table above)                       |
-| `speaker_wav` | file   | ✅       | Reference WAV file for speaker voice cloning          |
+| `speaker_wav` | file   | ✅       | Required for compatibility          |
 
 **Response**: `audio/wav` file (200 OK)
 
@@ -137,6 +217,7 @@ with open('output.wav', 'wb') as f:
 | **Inference Time** | 0.3-0.9 seconds per utterance                |
 | **Sample Rate**    | 22.05kHz (VITS), 16kHz (MMS)                 |
 | **Architecture**   | VITS + Meta MMS + Coqui TTS                  |
+| **Voice Cloning**  | Coqui XTTS v2                                |
 | **Deployment**     | HuggingFace Spaces (Docker)                  |
 | **API Framework**  | FastAPI with Uvicorn                         |
 
@@ -223,6 +304,7 @@ VoiceAPI/
 │   ├── config.py        # Language/voice configurations
 │   └── cli.py           # Command-line interface
 ├── models/              # Model storage (8GB, hosted on HF)
+├── web/                 # Next.js frontend (Vercel-ready)
 ├── training/            # Training scripts and configs
 │   ├── train_vits.py    # VITS training pipeline
 │   ├── prepare_dataset.py
@@ -285,7 +367,6 @@ Built by Team VoiceAPI:
 <div align="center">
 
 **⭐ Star this repo if you find it useful!**
-
 
 [Live API](https://harshil748-voiceapi.hf.space) • [Documentation](https://harshil748-voiceapi.hf.space/docs) • [GitHub](https://github.com/harshil748/VoiceAPI)
 
