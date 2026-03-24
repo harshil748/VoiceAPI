@@ -29,7 +29,7 @@ __pycache__/
 dist/
 build/
 .eggs/
-
+models/
 # Virtual environment
 tts/
 venv/
@@ -59,3 +59,4 @@ models/*/.cache/
 
 .next/
 node_modules/
+.env.local
