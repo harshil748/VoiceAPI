@@ -1,294 +1,279 @@
-# VoiceAPI: Multi-lingual Text-to-Speech for Healthcare
+# VoiceAPI — Multi-lingual TTS + Voice Cloning (Local)
 
-A production-ready, multi-lingual Text-to-Speech system supporting **11 Indian languages** with **21 voice variants**, trained on 150+ hours of speech data. Built for maternal healthcare accessibility.
+A fully **local** multi-lingual Text-to-Speech system supporting **11 Indian languages**
+with **21 voice variants** and real-time **voice cloning** — no cloud APIs, no API keys,
+no internet connection required after first setup.
 
-🌐 **Live API**: [https://harshil748-voiceapi.hf.space](https://harshil748-voiceapi.hf.space)  
-📖 **API Docs**: [https://harshil748-voiceapi.hf.space/docs](https://harshil748-voiceapi.hf.space/docs)  
-💻 **GitHub**: [https://github.com/harshil748/VoiceAPI](https://github.com/harshil748/VoiceAPI)
-
----
-
-## 🎯 Project Overview
-
-Built for the **Voice Tech for All Hackathon** to address linguistic barriers in rural Indian healthcare. The system converts medical instructions into natural speech across 11 languages, enabling accessible prenatal care guidance for non-literate populations.
-
-## ✨ Key Features
-
-- 🌏 **11 Indian Languages**: Hindi, Bengali, Marathi, Telugu, Kannada, Bhojpuri, Chhattisgarhi, Maithili, Magahi, English, Gujarati
-- 🎤 **21 Voice Variants**: Male & Female voices trained on 150+ hours of speech data
-- 🧬 **Custom Voice Cloning**: Clone user voice from uploaded WAV sample using XTTS v2
-- 🎭 **Prosody Control**: 9 style presets (calm, happy, sad, slow, fast, etc.)
-- ⚡ **Real-time Performance**: 0.3-0.9s inference on CPU hardware
-- 🔌 **Production REST API**: FastAPI with automatic docs, CORS support
-- 🧠 **Neural Architecture**: VITS + Meta MMS models with JIT optimization
-- 🖥️ **Modern Web UI**: Next.js frontend (black/orange) with playback + WAV download
-- 📦 **Deployed on HuggingFace Spaces**: Always-on, cloud-hosted API
+> **All inference runs on your machine** using model weights stored in `models/`.  
+> Voice cloning uses [Coqui XTTS v2](https://github.com/coqui-ai/TTS) (downloaded once, cached locally).
 
 ---
 
-## 🚀 Try It Now (No Installation Required)
+## ✨ Features
 
-### Custom Voice Cloning (Recommended)
-
-```python
-import requests
-
-base_url = 'https://harshil748-voiceapi.hf.space/clone'
-
-params = {
-    'text': 'नमस्ते, मैं आपकी कैसे मदद कर सकता हूँ?',
-    'lang': 'hindi',
-    'style': 'calm',
-    'speed': 1.0,
-    'pitch': 1.0,
-    'energy': 1.0,
-}
-
-with open('reference.wav', 'rb') as audio:
-    response = requests.post(base_url, params=params, files={'speaker_wav': audio})
-
-if response.status_code == 200:
-    with open('cloned_output.wav', 'wb') as f:
-        f.write(response.content)
-    print("✅ Audio saved as 'cloned_output.wav'")
-```
-
-### Test with Python
-
-```python
-import requests
-
-# Use the live API
-base_url = 'https://harshil748-voiceapi.hf.space/Get_Inference'
-
-params = {
-    'text': 'नमस्ते, आप कैसे हैं?',  # Hindi text
-    'lang': 'hindi',
-}
-
-# speaker_wav is required for spec compatibility
-# For actual voice cloning, use /clone endpoint shown above.
-with open('reference.wav', 'rb') as audio:
-    response = requests.get(base_url, params=params, files={'speaker_wav': audio})
-
-if response.status_code == 200:
-    with open('output.wav', 'wb') as f:
-        f.write(response.content)
-    print("✅ Audio saved as 'output.wav'")
-```
-
-### Test with cURL
-
-```bash
-curl -X POST "https://harshil748-voiceapi.hf.space/clone?text=નમસ્તે&lang=gujarati&style=default&speed=1&pitch=1&energy=1" \
-  -F "speaker_wav=@reference.wav" \
-    -o cloned_output.wav
-```
-
-### Test with Postman
-
-1. **Method**: `GET`
-2. **URL**: `https://harshil748-voiceapi.hf.space/Get_Inference`
-3. **Params Tab**:
-   - `text`: Your text in any supported language
-   - `lang`: One of: hindi, bengali, marathi, telugu, kannada, gujarati, bhojpuri, chhattisgarhi, maithili, magahi, english
-4. **Body Tab** → `form-data`:
-   - Key: `speaker_wav` (Type: File)
-   - Value: Upload any `.wav` file
-5. **Send** → Save response as `.wav` file
+| Feature | Detail |
+|---|---|
+| 🌏 **11 Languages** | Hindi, Bengali, Marathi, Telugu, Kannada, Bhojpuri, Chhattisgarhi, Maithili, Magahi, English, Gujarati |
+| 🎤 **21 Voice Variants** | Male & Female per language (SYSPIN VITS models) |
+| 🧬 **Voice Cloning** | Upload any 5–30 s WAV → synthesise in that voice via XTTS v2 |
+| 🎭 **Prosody Control** | Speed · Pitch · Energy sliders + 9 style presets |
+| ⚡ **Fast Inference** | 0.3–0.9 s per utterance on CPU |
+| 🖥️ **Web UI** | Next.js frontend — language picker, clone mode, audio playback + WAV download |
+| 🔌 **REST API** | FastAPI with auto-generated `/docs` (Swagger UI) |
+| 📴 **Fully Offline** | After first model download everything runs without internet |
 
 ---
 
-## 🌐 Web UI (Next.js)
+## 🚀 Quick Start
 
-A polished black/orange web app is available in the `web/` folder with:
-
-- Language selector dropdown
-- Male/Female voice toggle (standard voice mode)
-- Text input box
-- Style/speed/pitch controls
-- Custom voice cloning mode with WAV upload
-- Audio playback and download button
-
-### Run UI Locally
-
-```bash
-cd web
-cp .env.example .env.local
-npm install
-npm run dev
-```
-
-Open `http://localhost:3000`
-
-### Deploy to Vercel
-
-- Import repo in Vercel and set **Root Directory** to `web`
-- Add env var: `NEXT_PUBLIC_API_BASE=https://harshil748-voiceapi.hf.space`
-- Deploy and point domain to `voiceapi.vercel.app`
-
----
-
-## 🎨 Supported Languages
-
-| Language      | Code            | Male Voice | Female Voice | Sample Text                |
-| ------------- | --------------- | ---------- | ------------ | -------------------------- |
-| Hindi         | `hindi`         | ✅         | ✅           | नमस्ते                     |
-| Bengali       | `bengali`       | ✅         | ✅           | নমস্কার                    |
-| Marathi       | `marathi`       | ✅         | ✅           | नमस्कार                    |
-| Telugu        | `telugu`        | ✅         | ✅           | నమస్కారం                   |
-| Kannada       | `kannada`       | ✅         | ✅           | ನಮಸ್ಕಾರ                    |
-| Gujarati      | `gujarati`      | ✅         | -            | નમસ્તે                     |
-| Bhojpuri      | `bhojpuri`      | ✅         | ✅           | प्रणाम                     |
-| Chhattisgarhi | `chhattisgarhi` | ✅         | ✅           | नमस्कार                    |
-| Maithili      | `maithili`      | ✅         | ✅           | प्रणाम                     |
-| Magahi        | `magahi`        | ✅         | ✅           | प्रणाम                     |
-| English       | `english`       | ✅         | ✅           | hello (lowercase required) |
-
----
-
----
-
-## 📡 API Reference
-
-### POST /clone (Custom Voice Cloning)
-
-Synthesizes speech in the uploaded speaker's voice.
-
-**Endpoint**: `https://harshil748-voiceapi.hf.space/clone`
-
-**Parameters**:
-
-| Parameter     | Type   | Required | Description                                                           |
-| ------------- | ------ | -------- | --------------------------------------------------------------------- |
-| `text`        | string | ✅       | Text to convert to speech                                             |
-| `lang`        | string | ✅       | Language: english, hindi, bengali, gujarati, marathi, telugu, kannada |
-| `speaker_wav` | file   | ✅       | Reference WAV for cloning (3-15 sec recommended)                      |
-| `style`       | string | ❌       | Style preset (`default`, `calm`, `happy`, etc.)                       |
-| `speed`       | float  | ❌       | Speech speed (0.5-2.0)                                                |
-| `pitch`       | float  | ❌       | Pitch multiplier (0.5-2.0)                                            |
-| `energy`      | float  | ❌       | Energy multiplier (0.5-2.0)                                           |
-
-**Response**: `audio/wav` file (200 OK)
-
----
-
-### GET /Get_Inference
-
-Converts text to speech in any supported Indian language.
-
-**Endpoint**: `https://harshil748-voiceapi.hf.space/Get_Inference`
-
-**Parameters**:
-
-| Parameter     | Type   | Required | Description                                           |
-| ------------- | ------ | -------- | ----------------------------------------------------- |
-| `text`        | string | ✅       | Text to convert to speech (English must be lowercase) |
-| `lang`        | string | ✅       | Language code (see table above)                       |
-| `speaker_wav` | file   | ✅       | Required for compatibility          |
-
-**Response**: `audio/wav` file (200 OK)
-
-**Example**:
-
-```python
-import requests
-
-response = requests.get(
-    'https://harshil748-voiceapi.hf.space/Get_Inference',
-    params={'text': 'ನಮಸ್ಕಾರ', 'lang': 'kannada'},
-    files={'speaker_wav': open('reference.wav', 'rb')}
-)
-
-with open('output.wav', 'wb') as f:
-    f.write(response.content)
-```
-
----
-
-## 📊 Technical Specifications
-
-| Metric             | Value                                        |
-| ------------------ | -------------------------------------------- |
-| **Languages**      | 11 Indian languages                          |
-| **Voice Variants** | 21 (male/female per language)                |
-| **Training Data**  | 150+ hours (OpenSLR, Common Voice, IndicTTS) |
-| **Model Size**     | 318MB (VITS), 998MB (Coqui)                  |
-| **Inference Time** | 0.3-0.9 seconds per utterance                |
-| **Sample Rate**    | 22.05kHz (VITS), 16kHz (MMS)                 |
-| **Architecture**   | VITS + Meta MMS + Coqui TTS                  |
-| **Voice Cloning**  | Coqui XTTS v2                                |
-| **Deployment**     | HuggingFace Spaces (Docker)                  |
-| **API Framework**  | FastAPI with Uvicorn                         |
-
----
-
-## 🏗️ Architecture
-
-Built with a unified inference engine supporting heterogeneous model formats:
-
-- **JIT Models (.pt)**: VITS models trained on 150+ hours for 19 voices
-- **Coqui Checkpoints (.pth)**: Full checkpoints with config.json for Bhojpuri
-- **HuggingFace MMS**: Meta's multilingual model for Gujarati
-
-<details>
-<summary><b>View Architecture Diagrams</b></summary>
-
-#### System Architecture
-
-![System Architecture](diagrams/system_architecture.png)
-
-#### Data Flow
-
-![Data Flow](diagrams/data_flow.png)
-
-#### VITS Model Architecture
-
-![Model Architecture](diagrams/model_architecture.png)
-
-#### Training Pipeline
-
-![Training Pipeline](diagrams/training_pipeline.png)
-
-#### Voice Map (21 Voices × 11 Languages)
-
-![Voice Map](diagrams/voice_map.png)
-
-</details>
-
----
-
-## 🛠️ Local Development
-
-### Installation
+### 1 — Clone & install Python deps
 
 ```bash
 git clone https://github.com/harshil748/VoiceAPI
 cd VoiceAPI
 
+# Create a virtual environment (recommended)
 python3 -m venv tts
-source tts/bin/activate  # On Windows: tts\Scripts\activate
+source tts/bin/activate        # Windows: tts\Scripts\activate
 
 pip install -r requirements.txt
 ```
 
-### Start Local Server
+> **GPU users**: swap the `torch` line in `requirements.txt` for the CUDA wheel from
+> [pytorch.org](https://pytorch.org/get-started/locally/) before installing.
+
+---
+
+### 2 — Start everything with one command
 
 ```bash
-python -m src.cli serve --port 8000
+chmod +x start.sh
+./start.sh
 ```
 
-Visit `http://localhost:8000/docs` for interactive API documentation.
+This script will:
+1. Check Python + Node dependencies (install missing ones automatically)
+2. Start the **FastAPI backend** on `http://localhost:8000`
+3. Wait for the API to be healthy
+4. Start the **Next.js web UI** on `http://localhost:3000`
+5. Print a summary and keep both processes alive (Ctrl+C stops both)
 
-### Generate Speech Locally
+| Service | URL |
+|---|---|
+| Web UI | http://localhost:3000 |
+| API | http://localhost:8000 |
+| API Docs (Swagger) | http://localhost:8000/docs |
+
+---
+
+### 3 — Or start services individually
+
+**API server only:**
+```bash
+python start_api.py                        # default: 0.0.0.0:8000
+python start_api.py --port 8001            # custom port
+python start_api.py --reload               # hot-reload (dev mode)
+python start_api.py --preload hi_female    # preload a voice at startup
+```
+
+**Web UI only** (assumes API is already running):
+```bash
+cd web
+npm install          # first time only
+npm run dev
+```
+
+---
+
+## 🎙️ Voice Cloning
+
+Voice cloning works for: **English, Hindi, Bengali, Gujarati, Marathi, Telugu, Kannada**.
+
+### Via the Web UI
+1. Open `http://localhost:3000`
+2. Select **"Custom Voice Clone"** mode
+3. Choose language and style
+4. Upload a `.wav` file (5–30 s of clean speech)
+5. Click **Generate Audio** → play or download the `.wav`
+
+### Via the API (Python)
+```python
+import requests
+
+with open("my_voice.wav", "rb") as f:
+    response = requests.post(
+        "http://localhost:8000/clone",
+        params={
+            "text": "नमस्ते, मैं आपकी कैसे मदद कर सकता हूँ?",
+            "lang": "hindi",
+            "style": "calm",
+            "speed": 1.0,
+        },
+        files={"speaker_wav": f},
+    )
+
+with open("output.wav", "wb") as out:
+    out.write(response.content)
+print("Saved output.wav")
+```
+
+### Via cURL
+```bash
+curl -X POST "http://localhost:8000/clone?text=Hello+world&lang=english&style=default" \
+     -F "speaker_wav=@my_voice.wav" \
+     -o cloned_output.wav
+```
+
+> **First clone request**: XTTS v2 weights (~1.8 GB) are downloaded from HuggingFace and
+> cached in `models/` automatically. All subsequent requests are fully offline.
+
+---
+
+## 🗣️ Standard Synthesis (no reference audio needed)
+
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:8000/synthesize",
+    json={
+        "text": "ನಮಸ್ಕಾರ, ನೀವು ಹೇಗಿದ್ದೀರಿ?",
+        "voice": "kn_female",
+        "style": "happy",
+        "speed": 1.0,
+        "pitch": 1.0,
+        "energy": 1.0,
+    },
+)
+
+with open("output.wav", "wb") as f:
+    f.write(response.content)
+```
+
+Or use the GET convenience endpoint in a browser:
+```
+http://localhost:8000/synthesize/get?text=Hello&voice=en_female&style=calm
+```
+
+---
+
+## 📡 API Reference
+
+### Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Welcome message |
+| `GET` | `/health` | Server + engine status |
+| `GET` | `/voices` | All voices with download/load status |
+| `GET` | `/styles` | Style presets and parameter descriptions |
+| `GET` | `/languages` | Supported language codes |
+| `POST` | `/synthesize` | Synthesise text → WAV (JSON body) |
+| `GET` | `/synthesize/get` | Synthesise text → WAV (query params) |
+| `POST` | `/synthesize/stream` | Streaming WAV response |
+| `POST` | `/clone` | **Voice cloning** via XTTS v2 (multipart) |
+| `GET\|POST` | `/Get_Inference` | Hackathon-spec endpoint (clones when possible) |
+| `POST` | `/preload` | Load a voice into memory |
+| `POST` | `/unload` | Unload a voice from memory |
+| `POST` | `/batch` | Batch synthesise multiple texts |
+
+Full interactive docs: **http://localhost:8000/docs**
+
+---
+
+### POST /clone — Voice Cloning
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `text` | string (query) | ✅ | Text to synthesise |
+| `lang` | string (query) | ✅ | `english`, `hindi`, `bengali`, `gujarati`, `marathi`, `telugu`, `kannada` |
+| `speaker_wav` | file (form) | ✅ | Reference audio — WAV or MP3, 5–30 s recommended |
+| `style` | string (query) | ❌ | `default`, `calm`, `happy`, `sad`, `slow`, `fast`, `soft`, `loud`, `excited` |
+| `speed` | float (query) | ❌ | 0.5 – 2.0 (default 1.0) |
+| `pitch` | float (query) | ❌ | 0.5 – 2.0 (default 1.0) |
+| `energy` | float (query) | ❌ | 0.5 – 2.0 (default 1.0) |
+
+**Response**: `audio/wav` · Headers include `X-Duration`, `X-Sample-Rate`, `X-Inference-Time`
+
+---
+
+### POST /synthesize — Standard TTS
+
+```json
+{
+  "text": "নমস্কার, আপনি কেমন আছেন?",
+  "voice": "bn_female",
+  "speed": 1.0,
+  "pitch": 1.0,
+  "energy": 1.0,
+  "style": "calm",
+  "normalize": true
+}
+```
+
+---
+
+### GET|POST /Get_Inference — Hackathon Spec
 
 ```bash
+# With voice cloning (XTTS-supported language)
+curl -G "http://localhost:8000/Get_Inference" \
+     --data-urlencode "text=नमस्ते" \
+     --data-urlencode "lang=hindi" \
+     -F "speaker_wav=@reference.wav" \
+     -o output.wav
+
+# Non-XTTS language (uses pre-trained VITS, speaker_wav accepted but not used)
+curl -G "http://localhost:8000/Get_Inference" \
+     --data-urlencode "text=का बा?" \
+     --data-urlencode "lang=bhojpuri" \
+     -F "speaker_wav=@reference.wav" \
+     -o output.wav
+```
+
+---
+
+## 🌐 Supported Languages
+
+| Language | Voice Keys | Clone Support | Notes |
+|---|---|---|---|
+| Hindi | `hi_male`, `hi_female` | ✅ XTTS | SYSPIN VITS JIT |
+| Bengali | `bn_male`, `bn_female` | ✅ XTTS | SYSPIN VITS JIT |
+| Marathi | `mr_male`, `mr_female` | ✅ XTTS | SYSPIN VITS JIT |
+| Telugu | `te_male`, `te_female` | ✅ XTTS | SYSPIN VITS JIT |
+| Kannada | `kn_male`, `kn_female` | ✅ XTTS | SYSPIN VITS JIT |
+| English | `en_male`, `en_female` | ✅ XTTS | text must be lowercase |
+| Gujarati | `gu_mms` | ✅ XTTS | Facebook MMS (auto-downloads) |
+| Bhojpuri | `bho_male`, `bho_female` | ❌ (VITS only) | Coqui .pth checkpoint |
+| Chhattisgarhi | `hne_male`, `hne_female` | ❌ (VITS only) | SYSPIN VITS JIT |
+| Maithili | `mai_male`, `mai_female` | ❌ (VITS only) | SYSPIN VITS JIT |
+| Magahi | `mag_male`, `mag_female` | ❌ (VITS only) | SYSPIN VITS JIT |
+
+---
+
+## 🛠️ CLI Reference
+
+```bash
+# List all voices and download status
+python -m src.cli list
+
+# Download a specific voice
+python -m src.cli download --voice hi_male
+
+# Download all voices for a language
+python -m src.cli download --lang bn
+
+# Download everything
+python -m src.cli download --all
+
+# Synthesise from the command line
 python -m src.cli synthesize \
   --text "नमस्ते दोस्तों" \
-  --voice hi_male \
+  --voice hi_female \
   --output hello.wav
 
-afplay hello.wav  # macOS
+# Start API server (equivalent to start_api.py)
+python -m src.cli serve --port 8000 --reload
 ```
 
 ---
@@ -298,76 +283,183 @@ afplay hello.wav  # macOS
 ```
 VoiceAPI/
 ├── src/
-│   ├── api.py           # FastAPI REST server
+│   ├── api.py           # FastAPI REST server (local, no cloud deps)
 │   ├── engine.py        # Unified TTS inference engine
-│   ├── tokenizer.py     # Indic script tokenization
-│   ├── config.py        # Language/voice configurations
+│   ├── tokenizer.py     # Indic script tokenisation (VITS-compatible)
+│   ├── config.py        # Language / voice / style configurations
+│   ├── downloader.py    # HuggingFace model downloader
 │   └── cli.py           # Command-line interface
-├── models/              # Model storage (8GB, hosted on HF)
-├── web/                 # Next.js frontend (Vercel-ready)
-├── training/            # Training scripts and configs
-│   ├── train_vits.py    # VITS training pipeline
-│   ├── prepare_dataset.py
-│   └── export_model.py
-├── tests/               # API integration tests
-├── diagrams/            # Architecture diagrams (PNG)
-└── technical_report.tex # IEEE paper
+│
+├── models/              # All model weights (local)
+│   ├── hi_female/       # hi_female_vits_30hrs.pt + chars.txt
+│   ├── bn_female/       # bn_female_vits_30hrs.pt + chars.txt
+│   ├── bho_female/      # checkpoint_340000.pth + config.json
+│   ├── gu_mms/          # Facebook MMS tokeniser (weights auto-downloaded)
+│   ├── ...              # (all 20 SYSPIN voices)
+│   └── tts_models--multilingual--multi-dataset--xtts_v2/
+│                        # XTTS v2 weights (auto-downloaded on first clone)
+│
+├── web/                 # Next.js frontend
+│   ├── app/
+│   │   ├── page.js      # Main UI (clone + standard synthesis modes)
+│   │   ├── layout.js
+│   │   └── globals.css
+│   ├── .env.local       # NEXT_PUBLIC_API_BASE=http://localhost:8000
+│   └── package.json
+│
+├── local_tests/         # Integration test suite
+├── training/            # Training scripts (VITS fine-tuning)
+│
+├── start.sh             # One-command launcher (API + Web UI)
+├── start_api.py         # API-only launcher with CLI flags
+└── requirements.txt     # Python dependencies
 ```
 
 ---
 
-## 🎓 Technical Report
+## ⚙️ Architecture
 
-Read the full technical writeup: [VoiceAPI.pdf](VoiceAPI.pdf)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Next.js Web UI (:3000)                   │
+│   Clone Mode ──► POST /clone         (XTTS v2 voice clone)  │
+│   Standard  ──► POST /synthesize     (VITS / Coqui / MMS)   │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ HTTP (localhost)
+┌──────────────────────────▼──────────────────────────────────┐
+│                  FastAPI Server (:8000)                       │
+│  src/api.py                                                   │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│                    TTSEngine  (src/engine.py)                 │
+│                                                               │
+│   JIT .pt models    Coqui .pth models   Facebook MMS          │
+│   (19 SYSPIN        (Bhojpuri via       (Gujarati via          │
+│    voices)           TTS.Synthesizer)    transformers)         │
+│                                                               │
+│   XTTS v2  ──────────────────────────────────────────────►   │
+│   (voice cloning — weights cached in models/ after 1st use)  │
+└──────────────────────────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│                      models/  (local disk)                    │
+│   SYSPIN VITS .pt  ·  Bhojpuri .pth  ·  MMS config           │
+│   XTTS v2 weights  (~1.8 GB, downloaded once)                 │
+└──────────────────────────────────────────────────────────────┘
+```
 
-**Key Contributions:**
+### Model Types
 
-- Trained 21 VITS models on 150+ hours of Indian language data
-- Solved tokenizer alignment issues for Indic scripts
-- Implemented lazy loading reducing memory by 60%
-- Signal-based prosody control without retraining
+| Type | Format | Loader | Languages |
+|---|---|---|---|
+| SYSPIN VITS JIT | `.pt` + `chars.txt` | `torch.jit.load` | Hindi, Bengali, Marathi, Telugu, Kannada, English, Chhattisgarhi, Maithili, Magahi |
+| Coqui Checkpoint | `.pth` + `config.json` | `TTS.Synthesizer` | Bhojpuri |
+| Facebook MMS | HF `VitsModel` | `transformers` | Gujarati |
+| XTTS v2 | HF cached weights | `TTS.api.TTS` | Voice cloning (EN, HI, BN, GU, MR, TE, KN) |
+
+---
+
+## 🔧 Configuration
+
+### Change API port
+
+```bash
+# Via environment variable
+API_PORT=8001 WEB_PORT=3001 ./start.sh
+
+# Or directly
+python start_api.py --port 8001
+```
+
+Then update `web/.env.local`:
+```
+NEXT_PUBLIC_API_BASE=http://localhost:8001
+```
+
+### Preload voices at startup (faster first request)
+
+```bash
+python start_api.py --preload hi_female en_female bn_female
+```
+
+### GPU inference (CUDA)
+
+Install the CUDA PyTorch wheel and the engine will auto-detect the GPU:
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+python start_api.py  # device: cuda
+```
+
+---
+
+## 🧪 Running Tests
+
+```bash
+# Make sure the API is running first
+python start_api.py &
+
+# Run the local integration test suite
+cd local_tests
+python test_local_api.py
+
+# Test voice cloning across all supported languages
+python test_live_clone_all_languages.py
+```
+
+---
+
+## 📊 Performance
+
+| Metric | Value |
+|---|---|
+| Languages | 11 Indian languages |
+| Voice variants | 21 (male + female) |
+| Inference time | 0.3–0.9 s per utterance (CPU) |
+| Sample rate | 22 050 Hz (VITS), 16 000 Hz (MMS), 24 000 Hz (XTTS) |
+| XTTS first load | ~15–30 s (subsequent: ~5 s) |
+| XTTS model size | ~1.8 GB (downloaded once, cached in `models/`) |
+| SYSPIN model size | ~320 MB per voice |
+
+---
+
+## 📦 Dependencies
+
+| Package | Purpose |
+|---|---|
+| `torch` | Neural network inference |
+| `TTS` | Coqui TTS — Bhojpuri checkpoints + XTTS v2 voice cloning |
+| `transformers` | Facebook MMS Gujarati model |
+| `huggingface-hub` | Model snapshot downloads |
+| `soundfile` | WAV I/O |
+| `librosa` | Pitch shift + time stretch |
+| `fastapi` + `uvicorn` | REST API server |
+| `next` (Node) | Web UI |
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **OpenSLR**: Public speech datasets for 6 Indian languages
-- **Common Voice**: Mozilla's crowdsourced speech corpus
-- **IndicTTS**: IIT Madras speech synthesis resources
-- **Meta MMS**: Massively multilingual speech models
-- **HuggingFace**: Model hosting and deployment infrastructure
+- **SYSPIN** — VITS model weights for 10 Indian languages
+- **Meta AI** — MMS multilingual speech model (Gujarati)
+- **Coqui TTS** — XTTS v2 multilingual voice cloning
+- **OpenSLR / Common Voice / IndicTTS** — Training datasets
 
 ---
 
 ## 📜 License
 
 - **Code**: MIT License
-- **Models**: CC BY 4.0 (OpenSLR, IndicTTS), CC BY-NC 4.0 (MMS)
+- **SYSPIN Models**: CC BY 4.0
+- **MMS Models**: CC BY-NC 4.0
+- **XTTS v2**: Coqui Public Model License
 
 ---
 
-## 🤝 Contributors
+## 👥 Team
 
-Built by Team VoiceAPI:
+Built by **Team VoiceAPI** — CHARUSAT University
 
-- **Harshil Patel** - CHARUSAT University
-- **Harnish Patel** - CHARUSAT University
-- **Aman PAya** - CHARUSAT University
-
----
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/harshil748/VoiceAPI/issues)
-- **API Status**: Check [HuggingFace Space](https://huggingface.co/spaces/Harshil748/VoiceAPI)
-- **Documentation**: [Live API Docs](https://harshil748-voiceapi.hf.space/docs)
-
----
-
-<div align="center">
-
-**⭐ Star this repo if you find it useful!**
-
-[Live API](https://harshil748-voiceapi.hf.space) • [Documentation](https://harshil748-voiceapi.hf.space/docs) • [GitHub](https://github.com/harshil748/VoiceAPI)
-
-</div>
+- **Harshil Patel**
+- **Harnish Patel**
+- **Aman Paya**
