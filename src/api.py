@@ -90,8 +90,8 @@ app = FastAPI(
     """,
     version="1.0.0",
     contact={
-        "name": "Voice Tech for All Hackathon",
-        "url": "https://syspin.iisc.ac.in/voicetechforall#about",
+        "name": "Harshil Patel",
+        "url": "https://harshilpatel.me/#contact",
     },
     license_info={
         "name": "CC BY 4.0",
