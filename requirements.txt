@@ -1,27 +1,42 @@
-# Voice Tech for All - Multi-lingual TTS System
-# Requirements for the TTS system
+# ============================================================
+#  VoiceAPI — Local Requirements
+#  Install with:  pip install -r requirements.txt
+# ============================================================
 
-# Core ML/Audio
+# ── Core PyTorch (CPU build; swap for CUDA wheel if needed) ─
 torch
+torchaudio
+
+# ── Audio I/O & Processing ──────────────────────────────────
 numpy
 scipy
 soundfile
-librosa  # For pitch shifting and time stretching
+librosa          # pitch shift + time-stretch (StyleProcessor)
 
-# TTS Models
-TTS  # Coqui TTS - required for Bhojpuri .pth models
+# ── TTS Models ──────────────────────────────────────────────
+# Coqui TTS — required for:
+#   • Bhojpuri .pth checkpoints  (TTS.utils.synthesizer.Synthesizer)
+#   • XTTS v2 voice cloning      (TTS.api.TTS)
+TTS
+
+# HuggingFace ecosystem — required for:
+#   • Downloading SYSPIN model snapshots from HF Hub
+#   • Facebook MMS Gujarati model (transformers VitsModel)
 huggingface-hub
-transformers  # Required for MMS models (Gujarati)
+transformers
+accelerate       # optional but recommended for faster HF model loading
 
-# API Server
-fastapi
+# ── API Server ───────────────────────────────────────────────
+fastapi>=0.100.0
 uvicorn[standard]
-python-multipart  # Required for file uploads
-pydantic
+python-multipart  # multipart/form-data file uploads
+pydantic>=2.0
 
-# Utilities
+# ── Utilities ────────────────────────────────────────────────
 tqdm
 requests
+httpx            # async HTTP (used in tests / health checks)
 
-# Development (optional)
+# ── Development / Testing ────────────────────────────────────
 pytest
+pytest-asyncio

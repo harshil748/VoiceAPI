@@ -2,9 +2,9 @@
 Configuration for SYSPIN Multi-lingual TTS System
 """
 
+import os
 from dataclasses import dataclass
 from typing import Dict, Optional
-import os
 
 # Base path for models
 MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
@@ -156,13 +156,30 @@ LANGUAGE_CONFIGS: Dict[str, LanguageConfig] = {
         hf_model_id="SYSPIN/tts_vits_coquiai_EnglishFemale",
         model_filename="en_female_vits_30hrs.pt",
     ),
-    # Gujarati - Using Facebook MMS model (1100+ languages)
-    "gu_mms": LanguageConfig(
+    # Gujarati - SYSPIN VITS Coqui checkpoints (same format as Bhojpuri)
+    # chars are embedded in config.json — no chars.txt needed
+    "gu_male": LanguageConfig(
         name="Gujarati",
+        code="gu",
+        hf_model_id="SYSPIN/vits_Gujarati_Male",
+        model_filename="best_model.pth",
+        chars_filename="config.json",  # Coqui models have no chars.txt
+    ),
+    "gu_female": LanguageConfig(
+        name="Gujarati",
+        code="gu",
+        hf_model_id="SYSPIN/vits_Gujarati_Female",
+        model_filename="best_model.pth",
+        chars_filename="config.json",  # Coqui models have no chars.txt
+    ),
+    # Gujarati (Facebook MMS) — kept for reference / fallback
+    # Uses 16 kHz, neutral voice only; prefer gu_male / gu_female above.
+    "gu_mms": LanguageConfig(
+        name="Gujarati (MMS)",
         code="gu",
         hf_model_id="facebook/mms-tts-guj",
         model_filename="mms_guj.pt",
-        sample_rate=16000,  # MMS uses 16kHz
+        sample_rate=16000,  # MMS uses 16 kHz
     ),
 }
 
